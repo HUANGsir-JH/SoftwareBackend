@@ -1,4 +1,4 @@
-package org.software.model.media;
+package org.software.model.content.tag;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -9,22 +9,17 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 /**
- * 内容媒体(ContentMedia)表实体类
+ * 内容标签关联(ContentTag)表实体类
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("content_media")
-public class ContentMedia {
-    // 媒体文件Id
-    @TableId
-    private Integer mediaId;
-    // 所属内容id
+@TableName("content_tag")
+public class ContentTag {
+    // 内容Id
     private Integer contentId;
-    // 文件存储路径
-    private String fileUrl;
-    // 媒体文件类型
-    private String type;
+    // 标签Id
+    private Integer tagId;
     // 创建时间
     private Date createdAt;
     // 更新时间

@@ -1,17 +1,15 @@
 package org.software.model.post;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.software.model.media.ContentMedia;
+import org.software.model.content.media.ContentMedia;
 import org.software.model.user.User;
 
 import java.util.Date;
 
 /**
- * 帖子简版(PostSimple)表实体类
+ * 帖子简版(PostSimple)实体类
  */
 @Data
 @AllArgsConstructor
@@ -19,7 +17,6 @@ import java.util.Date;
 public class PostE
 {
     // 内容id
-    @TableId
     private Integer contentId;
     // 上传者id
     private Integer userId;

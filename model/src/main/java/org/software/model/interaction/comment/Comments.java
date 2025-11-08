@@ -1,4 +1,4 @@
-package org.software.model.comment;
+package org.software.model.interaction.comment;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

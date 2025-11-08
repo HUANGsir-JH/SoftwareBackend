@@ -1,4 +1,4 @@
-package org.software.model.tag;
+package org.software.model.content.tag;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -9,17 +9,19 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 /**
- * 内容标签关联(ContentTag)表实体类
- */
+ * 标签(Tag)表实体类*/
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("content_tag")
-public class ContentTag {
-    // 内容Id
-    private Integer contentId;
-    // 标签Id
+@TableName("tag")
+public class Tag {
+    // 标签id
+    @TableId
     private Integer tagId;
+    // 标签名称
+    private String tagName;
+    // 是否启用（0为禁用，1为启用）
+    private Integer isActive;
     // 创建时间
     private Date createdAt;
     // 更新时间

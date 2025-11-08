@@ -1,4 +1,4 @@
-package org.software.model.group;
+package org.software.model.social.group;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

@@ -1,12 +1,11 @@
 package org.software.model.post;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.software.model.media.ContentMedia;
-import org.software.model.tag.Tag;
+import org.software.model.content.media.ContentMedia;
+import org.software.model.content.tag.Tag;
 
 import java.util.Date;
 import java.util.List;
