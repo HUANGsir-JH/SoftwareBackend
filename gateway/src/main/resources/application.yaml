@@ -1,2 +1,43 @@
 server:
   port: 8000
+
+spring:
+    application:
+        name: gateway
+
+    cloud:
+        nacos:
+            discovery:
+                server-addr: ${SERVER}:8848
+        gateway:
+            routes:
+                -   id: service-user
+                    uri: lb://service-user
+                    predicates:
+                        - Path=/user/login, /user/register
+                    metadata:
+                        auth: false
+
+                -   id: service-user
+                    uri: lb://service-user
+                    predicates:
+                        - Path=/user/**
+                    metadata:
+                        auth: true
+
+                -   id: service-content
+                    uri: lb://service-content
+                    predicates:
+                        - Path=/content/**
+                -   id: service-search
+                    uri: lb://service-search
+                    predicates:
+                        - Path=/search/**
+                -   id: service-notification
+                    uri: lb://service-notification
+                    predicates:
+                        - Path=/notification/**
+                -   id: service-media
+                    uri: lb://service-media
+                    predicates:
+                        - Path=/media/**
