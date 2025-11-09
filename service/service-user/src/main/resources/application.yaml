@@ -1,2 +1,25 @@
 server:
   port: 7000
+
+spring:
+    application:
+        name: service-user
+
+    datasource:
+        url: jdbc:mysql://${SERVER}:3306/userdb
+        username: user
+        password: password
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
+    cloud:
+        nacos:
+          server-addr: ${SERVER}:8848
+          config:
+            namespace: dev
+
+    config:
+        import:
+          - nacos:common.yaml?group=user
+
