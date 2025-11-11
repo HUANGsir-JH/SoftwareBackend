@@ -2,6 +2,7 @@ package org.software.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.software.model.user.User;
+import org.software.user.mapper.UserMapper;
 import org.software.user.service.UserService;
 import org.springframework.stereotype.Service;
 

@@ -34,4 +34,12 @@ public class Response {
         response.data = null;
         return response;
     }
+
+    public static Response error(Integer code, String msg) {
+        Response response = new Response();
+        response.code = code;
+        response.msg = msg;
+        response.data = null;
+        return response;
+    }
 }

@@ -1,8 +1,9 @@
 package org.software.user.controller;
 
+import org.software.feign.MediaFeignClient;
 import org.software.model.Response;
 import org.software.model.page.PageQuery;
-import org.software.model.user.PageUserDTO;
+import org.software.model.user.PageUserD;
 import org.software.model.user.PasswordView;
 import org.software.model.user.User;
 import org.software.user.service.UserService;
@@ -16,6 +17,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private MediaFeignClient mediaFeignClient;
 
     @GetMapping
     public Response getUser(String userId) {
@@ -30,26 +33,26 @@ public class UserController {
 
     @PutMapping("/password")
     public Response updatePassword(@RequestBody PasswordView passV) {
-
+        // TODO
         return null;
     }
 
     @PutMapping("/avatar")
     public Response uploadAvatar(MultipartFile file) {
-        // TODO:
-        return null;
+        // TODO: userId
+        return mediaFeignClient.uploadAvatar(file, );
     }
 
     @PutMapping("/backImage")
     public Response uploadBackImage(MultipartFile file) {
-        // TODO
-        return null;
+        // TODO: userId
+        return mediaFeignClient.uploadAvatar(file, );
     }
 
 // ========================= B端 ==============================
 
     @GetMapping("/b")
-    public Response getUserBatch(PageQuery pageQuery, PageUserDTO pageUserDTO) {
+    public Response getUserBatch(PageQuery pageQuery, PageUserD pageUserD) {
         return null;
     }
 
@@ -60,6 +63,7 @@ public class UserController {
 
     @PutMapping("/b/{userId}")
     public Response updateBannedUserStatus(@PathVariable String userId) {
+
         return null;
     }
 

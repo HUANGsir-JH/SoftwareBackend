@@ -1,2 +1,37 @@
 server:
   port: 7003
+
+spring:
+  application:
+    name: service-user
+
+  datasource:
+    url: jdbc:mysql://${SERVER}:3306/se_user?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USERNAME}
+    password: ${PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      database: 0
+      host: ${SERVER}
+      port: 6379
+      password: ${PASSWORD}
+
+  cloud:
+    nacos:
+      server-addr: ${SERVER}:8848
+      config:
+        namespace: dev
+
+  config:
+    import:
+      - nacos:common.yaml?group=user
+
+r2:
+    access-key: ${r2.access-key}
+    secret-key: ${r2.secret-key}
+    endpoint: ${r2.endpoint}
+    region: ${r2.region}
+    bucket: ${r2.bucket}
+    domain: ${r2.domain}

@@ -6,12 +6,17 @@ spring:
         name: service-user
 
     datasource:
-        url: jdbc:mysql://${SERVER}:3306/userdb
-        username: user
-        password: password
+        url: jdbc:mysql://${SERVER}:3306/se_user?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+        username: ${MYSQL_USERNAME}
+        password: ${PASSWORD}
         driver-class-name: com.mysql.cj.jdbc.Driver
 
-
+    data:
+        redis:
+            database: 0
+            host: ${SERVER}
+            port: 6379
+            password: ${PASSWORD}
 
     cloud:
         nacos:
@@ -22,4 +27,6 @@ spring:
     config:
         import:
           - nacos:common.yaml?group=user
+
+
 

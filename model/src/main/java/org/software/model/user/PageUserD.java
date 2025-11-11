@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageUserDTO {
+public class PageUserD {
     private String username;         // 用户名
     private String email;            // 邮箱
     private String sex;              // 性别

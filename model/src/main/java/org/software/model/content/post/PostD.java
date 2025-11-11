@@ -1,4 +1,4 @@
-package org.software.model.post;
+package org.software.model.content.post;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
