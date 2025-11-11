@@ -5,25 +5,23 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.software</groupId>
-        <artifactId>service</artifactId>
+        <artifactId>SoftwareBackend</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>service-media</artifactId>
+    <artifactId>openfeign</artifactId>
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>
         <maven.compiler.target>22</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <amazon.awssdk>2.29.22</amazon.awssdk>
     </properties>
 
     <dependencies>
-        <!-- R2OSS -->
+        <!-- openfeign -->
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-            <version>${amazon.awssdk}</version>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
     </dependencies>
 

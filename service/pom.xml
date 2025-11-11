@@ -15,9 +15,7 @@
         <module>service-user</module>
         <module>service-content</module>
         <module>service-search</module>
-        <module>service-media</module>
         <module>service-notification</module>
-        <module>service-admin</module>
     </modules>
 
     <artifactId>service</artifactId>
@@ -63,6 +61,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.software</groupId>
+            <artifactId>openfeign</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <!-- redis -->

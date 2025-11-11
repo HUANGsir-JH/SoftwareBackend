@@ -15,6 +15,7 @@
         <module>model</module>
         <module>service</module>
         <module>gateway</module>
+        <module>openfeign</module>
     </modules>
 
     <groupId>org.software</groupId>
