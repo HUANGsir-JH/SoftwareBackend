@@ -2,7 +2,6 @@ package org.software.media.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.software.media.config.R2Config;
-import org.software.model.constants.MediaContants;
 import org.software.model.content.media.UploadD;
 import org.software.model.content.media.UploadV;
 import org.software.model.exception.SystemException;
@@ -18,8 +17,6 @@ import software.amazon.awssdk.services.s3.presigner.model.*;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**

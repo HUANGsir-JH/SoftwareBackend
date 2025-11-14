@@ -17,8 +17,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private MediaFeignClient mediaFeignClient;
 
     @GetMapping
     public Response getUser(String userId) {
@@ -40,13 +38,13 @@ public class UserController {
     @PutMapping("/avatar")
     public Response uploadAvatar(MultipartFile file) {
         // TODO: userId
-        return mediaFeignClient.uploadAvatar(file, );
+        return null;
     }
 
     @PutMapping("/backImage")
     public Response uploadBackImage(MultipartFile file) {
         // TODO: userId
-        return mediaFeignClient.uploadAvatar(file, );
+        return null;
     }
 
 // ========================= B端 ==============================

@@ -4,13 +4,10 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.software.content.mapper.ContentMapper;
 import org.software.content.service.ContentService;
-import org.software.model.constants.ContentContants;
+import org.software.model.constants.ContentConstants;
 import org.software.model.content.Content;
 import org.software.model.content.ContentD;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 /**
  * 内容主表(Content)表服务实现类
@@ -31,7 +28,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         
         // 如果状态为空，设置默认状态为草稿
         if (content.getStatus() == null || content.getStatus().isEmpty()) {
-            content.setStatus(ContentContants.STATUS_DRAFT); // 草稿状态
+            content.setStatus(ContentConstants.STATUS_DRAFT); // 草稿状态
         }
         
         // 保存到数据库

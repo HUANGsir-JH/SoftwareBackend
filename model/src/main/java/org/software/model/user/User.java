@@ -2,6 +2,7 @@ package org.software.model.user;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("user")
+@Builder
 public class User {
     //用户唯一Id
     @TableId(type = IdType.ASSIGN_ID)

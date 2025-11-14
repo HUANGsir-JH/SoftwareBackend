@@ -1,6 +1,6 @@
 package org.software.model.constants;
 
-public class MediaContants {
+public class MediaConstants {
     public static final String UPLOAD_ERR = "上传失败";
 
     // scenario

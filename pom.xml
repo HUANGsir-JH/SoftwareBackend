@@ -44,7 +44,7 @@
         <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
         <version.lombok>1.18.34</version.lombok>
         <vesion.hutool>5.8.0</vesion.hutool>
-        <vesion.mybatis-plus>3.5.5</vesion.mybatis-plus>
+        <vesion.mybatis-plus>3.5.14</vesion.mybatis-plus>
     </properties>
 
     <dependencyManagement>
@@ -52,7 +52,7 @@
             <!-- mybatis-plus -->
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${vesion.mybatis-plus}</version>
             </dependency>
 

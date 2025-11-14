@@ -1,4 +1,4 @@
-package org.software.content.handler;
+package org.software.gateway.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.software.model.Response;
@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Slf4j
-
-// TODO: 移动到网关
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(SystemException.class)
