@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class UploadD {
-    private Integer count;
+    private Integer count = 1;
     private String type;
     private String contentType;
     private Long contentLength;
-    private String fileName;
+    private String filename;
 }

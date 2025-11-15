@@ -42,4 +42,6 @@ spring:
           - nacos:common.yaml?group=user
 
 
-
+mybatis-plus:
+    configuration:
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

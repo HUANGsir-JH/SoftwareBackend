@@ -43,8 +43,9 @@
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
         <version.lombok>1.18.34</version.lombok>
-        <vesion.hutool>5.8.0</vesion.hutool>
-        <vesion.mybatis-plus>3.5.14</vesion.mybatis-plus>
+        <version.hutool>5.8.0</version.hutool>
+        <version.mybatis-plus>3.5.5</version.mybatis-plus>
+        <version.fastjson2>2.0.43</version.fastjson2>
     </properties>
 
     <dependencyManagement>
@@ -53,7 +54,7 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-                <version>${vesion.mybatis-plus}</version>
+                <version>${version.mybatis-plus}</version>
             </dependency>
 
             <!-- web && cloud 依赖 -->
@@ -84,7 +85,13 @@
             <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
-                <version>${vesion.hutool}</version>
+                <version>${version.hutool}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${version.fastjson2}</version>
             </dependency>
 
         </dependencies>

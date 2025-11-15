@@ -103,7 +103,7 @@ public class R2OSSUtil {
         }
 
         String contentType = uploadD.getContentType();
-        String originalFilename = uploadD.getFileName();
+        String originalFilename = uploadD.getFilename();
         long size = uploadD.getContentLength();
 
         // 1. 大小校验
@@ -248,7 +248,7 @@ public class R2OSSUtil {
 
     public String upload(MultipartFile file, Long userId, String scenario) throws SystemException {
         UploadD uploadD = UploadD.builder()
-                .fileName(file.getOriginalFilename())
+                .filename(file.getOriginalFilename())
                 .contentLength(file.getSize())
                 .contentType(file.getContentType())
                 .build();
@@ -292,7 +292,7 @@ public class R2OSSUtil {
     ) {
         String bucketName = r2Config.getBucket();
         if (bucketName == null || objectKey == null) {
-            throw new IllegalArgumentException("presigner、bucketName 和 objectKey 不能为空");
+            throw new IllegalArgumentException("bucketName 或 objectKey 不能为空");
         }
         if (expirationMinutes < 1 || expirationMinutes > 1440) {
             throw new IllegalArgumentException("过期时间必须在1-1440分钟之间");
@@ -342,7 +342,7 @@ public class R2OSSUtil {
         );
 
         return UploadV.builder()
-                .objectKey (objectKey)
+                .objectKey (r2Config.getEndpoint() + '/' + objectKey)
                 .presignedUrl(presignedUrl)
                 .expiresIn(expirationMinutes + " minutes")
                 .build();

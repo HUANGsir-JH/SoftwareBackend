@@ -1,8 +1,10 @@
 package org.software.user.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.software.model.user.EmailLoginRequest;
+import org.software.model.user.PageUserD;
 import org.software.model.user.User;
 import org.software.model.user.UsernameLoginRequest;
 
@@ -15,5 +17,6 @@ import org.software.model.user.UsernameLoginRequest;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
+
 }
 

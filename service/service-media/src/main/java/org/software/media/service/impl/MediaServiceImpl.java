@@ -1,5 +1,6 @@
 package org.software.media.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import org.software.media.service.MediaService;
 import org.software.media.util.R2OSSUtil;
 import org.software.model.content.media.UploadD;
@@ -19,7 +20,7 @@ public class MediaServiceImpl implements MediaService {
 
     @Override
     public List<UploadV> upload(UploadD uploadD) {
-        Long userId = 123L; // TODO: 从 token 中获取当前登录用户的 userId
+        Long userId = StpUtil.getLoginIdAsLong();
 
         List<UploadV> list = new ArrayList<>();
         for (int i=0; i<uploadD.getCount(); i++) {

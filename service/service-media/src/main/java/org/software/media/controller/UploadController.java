@@ -6,9 +6,7 @@ import org.software.model.Response;
 import org.software.model.content.media.UploadD;
 import org.software.model.content.media.UploadV;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,9 +18,8 @@ public class UploadController {
     @Autowired
     private MediaService mediaService;
 
-    @GetMapping("/signature")
-    public Response upload(UploadD uploadD) {
-        // TODO:
+    @PostMapping("/signature")
+    public Response upload(@RequestBody UploadD uploadD) {
         List<UploadV> list = mediaService.upload(uploadD);
         return Response.success(list);
     }
