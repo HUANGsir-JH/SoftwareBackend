@@ -131,7 +131,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "生成预签名url失败");
         }
 
-        List<UploadV> list = (List<UploadV>) response.getData();
+        String json = JSON.toJSONString(response.getData());
+        List<UploadV> list = JSON.parseObject(json, new TypeReference<>() {});
 
         Long userId = StpUtil.getLoginIdAsLong();
         User user = User.builder()
