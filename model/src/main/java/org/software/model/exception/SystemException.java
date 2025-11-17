@@ -20,4 +20,17 @@ public class SystemException extends Exception{
         this.code = HttpCodeEnum.SYSTEM_ERROR.getCode();
         this.message = msg;
     }
+    // 新增
+    public SystemException(HttpCodeEnum httpCodeEnum, Throwable cause) {
+        super(cause);
+        this.code = httpCodeEnum.getCode();
+        this.message = httpCodeEnum.getMsg();
+    }
+
+    // 新增
+    public SystemException(Integer code, String message, Throwable cause) {
+        super(cause);
+        this.code = code;
+        this.message = message;
+    }
 }
