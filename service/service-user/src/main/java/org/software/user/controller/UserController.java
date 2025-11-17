@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @GetMapping("/backImage")
-    public Response uploadBackImage(UploadD uploadD) throws SystemException {
+    public Response uploadBackImage(@RequestBody UploadD uploadD) throws SystemException {
         String url = userService.updateBG(uploadD);
         return Response.success(url);
     }
