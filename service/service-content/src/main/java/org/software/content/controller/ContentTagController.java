@@ -16,14 +16,14 @@ public class ContentTagController {
     }
 
     // 上传内容标签关联
-    @PostMapping("/upload")
+    @PostMapping
     public Response uploadContentTag(@RequestBody ContentTagDTO contentTagDTO) {
         boolean result = contentTagService.uploadContentTag(contentTagDTO);
         return Response.success(result);
     }
 
     // 更新内容标签关联
-    @PutMapping("/update")
+    @PutMapping
     public Response updateContentTag(@RequestBody ContentTagDTO contentTagDTO) {
         boolean result = contentTagService.updateContentTag(contentTagDTO);
         return Response.success(result);

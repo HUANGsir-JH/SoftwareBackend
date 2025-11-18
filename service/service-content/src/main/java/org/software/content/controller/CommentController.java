@@ -20,7 +20,7 @@ public class CommentController {
     }
 
     // 新增评论
-    @PostMapping("/add")
+    @PostMapping
     public Response addComment(@RequestBody CommentDTO commentDTO) {
         Integer commentId = commentsService.addComment(commentDTO);
         return Response.success(commentId);
@@ -31,5 +31,20 @@ public class CommentController {
     public Response getRootComments(@RequestParam Integer contentId) {
         List<CommentVO> rootComments = commentsService.getRootComments(contentId);
         return Response.success(rootComments);
+    }
+    @GetMapping("/child")
+    public Response getChildComments(@RequestParam Integer commentId) {
+        List<CommentVO> childComments = commentsService.getChildComments(commentId);
+        return Response.success(childComments);
+    }
+    @GetMapping("/unread")
+    public Response getUnreadComments(@RequestParam Integer commentId){
+        List<CommentVO> unreadComments = commentsService.getUnreadComments(commentId);
+        return Response.success(unreadComments);
+    }
+    @GetMapping("unread")
+    public Response getUnreadCommentsByParentId(@RequestParam Integer parentCommentId){
+        Integer count=commentsService.getUnreadCommentCount(parentCommentId);
+        return Response.success(count);
     }
 }
