@@ -5,6 +5,7 @@ import org.software.model.content.dto.TagDTO;
 import org.software.content.service.TagService;
 import org.software.model.content.vo.TagVO;
 import org.software.model.Response;
+import org.software.model.exception.BusinessException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,13 +21,13 @@ public class TagController {
     }
 
     @PostMapping
-    public Response  addTag(@RequestBody TagDTO tagDTO) {
+    public Response  addTag(@RequestBody TagDTO tagDTO) throws BusinessException {
         boolean result = tagService.addTag(tagDTO);
         return Response.success(result);
     }
 
-    @PutMapping
-    public Response updateTag(@PathVariable Integer tagId, @RequestBody TagDTO tagDTO) {
+    @PutMapping("/{tagId}")
+    public Response updateTag(@PathVariable Integer tagId, @RequestBody TagDTO tagDTO) throws BusinessException {
         boolean result = tagService.updateTag(tagId, tagDTO);
         return Response.success(result);
     }
@@ -38,7 +39,7 @@ public class TagController {
     }
 
     @DeleteMapping("/{tagId}")
-    public Response deleteTag(@PathVariable Integer tagId) {
+    public Response deleteTag(@PathVariable Integer tagId) throws BusinessException {
         boolean result = tagService.deleteTag(tagId);
         return Response.success(result);
     }

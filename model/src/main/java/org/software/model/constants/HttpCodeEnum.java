@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum HttpCodeEnum {
-    // 成功与基础错误
+    // 通用
     SUCCESS(200, "操作成功"),
     PARAM_ERROR(400, "请求参数错误"),
     NEED_LOGIN(401, "需要登录后操作"),
