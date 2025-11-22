@@ -19,25 +19,25 @@ public class TagController {
         this.tagService = tagService;
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public Response  addTag(@RequestBody TagDTO tagDTO) {
         boolean result = tagService.addTag(tagDTO);
         return Response.success(result);
     }
 
-    @PutMapping("/update/{tagId}")
+    @PutMapping
     public Response updateTag(@PathVariable Integer tagId, @RequestBody TagDTO tagDTO) {
         boolean result = tagService.updateTag(tagId, tagDTO);
         return Response.success(result);
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public Response getTagList() {
         List<TagVO> tagList = tagService.getTagList();
         return Response.success(tagList);
     }
 
-    @DeleteMapping("/delete/{tagId}")
+    @DeleteMapping("/{tagId}")
     public Response deleteTag(@PathVariable Integer tagId) {
         boolean result = tagService.deleteTag(tagId);
         return Response.success(result);

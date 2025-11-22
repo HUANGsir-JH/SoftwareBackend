@@ -19,14 +19,14 @@ public class ContentLikeFavoriteController {
     }
 
     // 新增或取消点赞/收藏
-    @PostMapping("/add-or-cancel")
+    @PostMapping
     public Response addOrCancelLike(@RequestBody ContentLikeFavoriteDTO dto) {
         boolean result = likeFavoriteService.addOrCancelLike(dto);
         return Response.success(result);
     }
 
     // 获取用户的点赞/收藏记录
-    @GetMapping("/records")
+    @GetMapping
     public Response getLikeFavoriteRecords(
             @RequestParam Integer userId,
             @RequestParam String type) {
@@ -35,7 +35,7 @@ public class ContentLikeFavoriteController {
     }
 
     // 标记所有记录为已读
-    @PutMapping("/read-all")
+    @PutMapping
     public Response readAll(
             @RequestParam Integer userId,
             @RequestParam String type) {
