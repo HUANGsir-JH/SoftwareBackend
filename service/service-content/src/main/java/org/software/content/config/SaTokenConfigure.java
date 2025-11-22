@@ -1,4 +1,4 @@
-package org.software.content;
+package org.software.content.config;
 
 import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.filter.SaServletFilter;

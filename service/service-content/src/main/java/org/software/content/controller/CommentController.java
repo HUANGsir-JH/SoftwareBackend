@@ -1,9 +1,9 @@
 package org.software.content.controller;
 
 
-import org.software.content.dto.CommentDTO;
+import org.software.model.content.dto.CommentDTO;
 import org.software.content.service.CommentsService;
-import org.software.content.dto.CommentVO;
+import org.software.model.content.vo.CommentVO;
 import org.software.model.Response;
 import org.springframework.web.bind.annotation.*;
 

@@ -2,9 +2,10 @@ package org.software.media.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.software.media.config.R2Config;
+import org.software.model.constants.HttpCodeEnum;
 import org.software.model.content.media.UploadD;
 import org.software.model.content.media.UploadV;
-import org.software.model.exception.SystemException;
+import org.software.model.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -99,6 +100,7 @@ public class R2OSSUtil {
             String scenarioName
     ) {
         if (uploadD == null) {
+            log.warn("{} | scenario: {}", HttpCodeEnum.FILE_NULL.getMsg(), scenarioName);
             throw new IllegalArgumentException("[" + scenarioName + "] 文件不能为空");
         }
 
@@ -108,6 +110,9 @@ public class R2OSSUtil {
 
         // 1. 大小校验
         if (size > maxSizeBytes) {
+            log.warn("{} | scenario: {} | maxSize: {}MB | actualSize: {:.2f}MB", 
+                HttpCodeEnum.FILE_SIZE_EXCEEDED.getMsg(), scenarioName, 
+                maxSizeBytes / (1024 * 1024), size / (1024.0 * 1024.0));
             throw new IllegalArgumentException(
                     String.format("[%s] 文件大小不能超过 %d MB，当前: %.2f MB",
                             scenarioName,
@@ -118,11 +123,14 @@ public class R2OSSUtil {
 
         // 2. MIME 类型校验
         if (contentType == null || contentType.isBlank()) {
+            log.warn("{} | scenario: {}", HttpCodeEnum.FILE_TYPE_NOT_RECOGNIZED.getMsg(), scenarioName);
             throw new IllegalArgumentException("[" + scenarioName + "] 无法识别文件类型");
         }
 
         contentType = contentType.toLowerCase();
         if (!allowedMimeTypes.contains(contentType)) {
+            log.warn("{} | scenario: {} | contentType: {} | allowed: {}", 
+                HttpCodeEnum.FILE_TYPE_NOT_SUPPORTED.getMsg(), scenarioName, contentType, allowedMimeTypes);
             throw new IllegalArgumentException(
                     String.format("[%s] 不支持的文件类型: %s，仅支持: %s",
                             scenarioName,
@@ -138,6 +146,8 @@ public class R2OSSUtil {
             // 允许部分别名（如 jpeg/jpg）
             if (!(expectedExt.equals("jpg") && ext.equals("jpeg")) &&
                     !(expectedExt.equals("jpeg") && ext.equals("jpg"))) {
+                log.warn("{} | scenario: {} | extension: {} | contentType: {}", 
+                    HttpCodeEnum.FILE_EXTENSION_MISMATCH.getMsg(), scenarioName, ext, contentType);
                 throw new IllegalArgumentException(
                         String.format("[%s] 文件扩展名 (%s) 与实际类型 (%s) 不匹配",
                                 scenarioName, ext, contentType));
@@ -153,12 +163,14 @@ public class R2OSSUtil {
         String ext = MIME_TO_EXT.getOrDefault(CT, "jpg"); // 默认 jpg
 
         // 安全路径：avatars/{userId}/{timestamp}_{uuid}.{ext}
-        return String.format("images/%s/%d_%s.%s",
+        String objectKey = String.format("images/%s/%d_%s.%s",
                 userId,
                 System.currentTimeMillis(),
                 UUID.randomUUID().toString().replace("-", "").substring(0, 8),
                 ext
         );
+        log.info("生成头像ObjectKey | userId: {} | objectKey: {}", userId, objectKey);
+        return objectKey;
     }
 
     // ========== 场景2：用户动态（图片或短视频） ==========
@@ -172,12 +184,14 @@ public class R2OSSUtil {
         String ext = MIME_TO_EXT.getOrDefault(contentType, "bin");
 
         // 路径：feeds/{userId}/{timestamp}_{uuid}.{ext}
-        return String.format("feeds/%s/%d_%s.%s",
+        String objectKey = String.format("feeds/%s/%d_%s.%s",
                 userId,
                 System.currentTimeMillis(),
                 UUID.randomUUID().toString().replace("-", "").substring(0, 8),
                 ext
         );
+        log.info("生成动态媒体ObjectKey | userId: {} | objectKey: {}", userId, objectKey);
+        return objectKey;
     }
 
     // =============================================================================================
@@ -192,17 +206,17 @@ public class R2OSSUtil {
      * @return 上传成功后文件的公开访问 URL，失败则返回 null。
      */
     public String doUpload(InputStream inputStream, String objectName, long contentLength, String contentType) {
-        log.info("开始执行上传任务，目标对象：{}", objectName);
+        log.info("开始上传文件 | objectName: {} | contentLength: {} | contentType: {}", objectName, contentLength, contentType);
         if (inputStream == null) {
-            log.error("上传失败：输入流不能为空");
+            log.warn("{} | objectName: {}", HttpCodeEnum.INPUT_STREAM_NULL.getMsg(), objectName);
             return null;
         }
         if (objectName == null || objectName.trim().isEmpty()) {
-            log.error("上传失败：对象名称不能为空");
+            log.warn("{}", HttpCodeEnum.OBJECT_NAME_NULL.getMsg());
             return null;
         }
         if (contentType == null || contentType.trim().isEmpty()) {
-            log.warn("警告：{}的文件格式为空", objectName);
+            log.warn("{} | objectName: {} | defaultType: application/octet-stream", HttpCodeEnum.FILE_TYPE_NOT_RECOGNIZED.getMsg(), objectName);
             contentType = "application/octet-stream";
         }
 
@@ -215,7 +229,7 @@ public class R2OSSUtil {
 
         try {
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, contentLength));
-            log.info("File uploaded successfully to R2: {}/{}", r2Config.getBucket(), objectName);
+            log.info("{} | bucket: {} | objectName: {}", HttpCodeEnum.SUCCESS.getMsg(), r2Config.getBucket(), objectName);
 
             // 构建公开访问 URL
             // 确保 domain 不以 / 结尾，objectName 不以 / 开头，以避免双斜杠
@@ -237,16 +251,19 @@ public class R2OSSUtil {
             return domain + "/" + keyForUrl;
 
         } catch (S3Exception e) {
-            log.error("Error uploading file to R2: {} (AWS Error Code: {})", e.awsErrorDetails().errorMessage(), e.awsErrorDetails().errorCode(), e);
+            log.error("{} | objectName: {} | errorCode: {} | errorMsg: {}", 
+                HttpCodeEnum.FILE_UPLOAD_FAILED.getMsg(), objectName, 
+                e.awsErrorDetails().errorCode(), e.awsErrorDetails().errorMessage(), e);
         } catch (Exception e) {
-            log.error("Unexpected error uploading file to R2: {}", e.getMessage(), e);
+            log.error("{} | objectName: {} | error: {}", 
+                HttpCodeEnum.FILE_UPLOAD_FAILED.getMsg(), objectName, e.getMessage(), e);
         } finally {
             // 注意：此方法不负责关闭传入的 inputStream，调用者应负责关闭
         }
         return null;
     }
 
-    public String upload(MultipartFile file, Long userId, String scenario) throws SystemException {
+    public String upload(MultipartFile file, Long userId, String scenario) throws BusinessException {
         UploadD uploadD = UploadD.builder()
                 .filename(file.getOriginalFilename())
                 .contentLength(file.getSize())
@@ -263,16 +280,18 @@ public class R2OSSUtil {
         try (InputStream inputStream = file.getInputStream()){
             String fileUrl = doUpload(inputStream, filename, size, contentType);
             if (fileUrl != null) {
-                log.info("文件上传成功: {}，访问URL: {}", filename, fileUrl);
+                log.info("{} | userId: {} | scenario: {} | filename: {} | fileUrl: {}", 
+                    HttpCodeEnum.SUCCESS.getMsg(), userId, scenario, filename, fileUrl);
                 return fileUrl;
             } else {
-                log.error("文件上传失败: {}，R2OssUtil未能返回URL。", filename);
-                // R2OssUtil 内部应该已经记录了更详细的S3Exception日志
-                throw new SystemException(filename);
+                log.warn("{} | userId: {} | scenario: {} | filename: {}", 
+                    HttpCodeEnum.FILE_UPLOAD_FAILED.getMsg(), userId, scenario, filename);
+                throw new BusinessException(filename);
             }
         }catch (Exception e){
-            log.error("Unexpected error uploading file to R2: {}", e.getMessage(), e);
-            throw new SystemException(filename);
+            log.error("{} | userId: {} | scenario: {} | filename: {} | error: {}", 
+                HttpCodeEnum.FILE_UPLOAD_FAILED.getMsg(), userId, scenario, filename, e.getMessage(), e);
+            throw new BusinessException(filename);
         }
     }
 
@@ -292,9 +311,12 @@ public class R2OSSUtil {
     ) {
         String bucketName = r2Config.getBucket();
         if (bucketName == null || objectKey == null) {
+            log.warn("{} | bucketName: {} | objectKey: {}", HttpCodeEnum.BUCKET_NAME_NULL.getMsg(), bucketName, objectKey);
             throw new IllegalArgumentException("bucketName 或 objectKey 不能为空");
         }
         if (expirationMinutes < 1 || expirationMinutes > 1440) {
+            log.warn("{} | expirationMinutes: {} | validRange: 1-1440", 
+                HttpCodeEnum.EXPIRATION_INVALID.getMsg(), expirationMinutes);
             throw new IllegalArgumentException("过期时间必须在1-1440分钟之间");
         }
 
@@ -313,7 +335,9 @@ public class R2OSSUtil {
                 .build();
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
-        return presignedRequest.url().toString();
+        String presignedUrl = presignedRequest.url().toString();
+        log.info("{} | objectKey: {} | expiresIn: {}min", HttpCodeEnum.SUCCESS.getMsg(), objectKey, expirationMinutes);
+        return presignedUrl;
     }
 
     /**
@@ -341,11 +365,15 @@ public class R2OSSUtil {
                 expirationMinutes
         );
 
-        return UploadV.builder()
+        UploadV uploadV = UploadV.builder()
                 .objectKey (r2Config.getEndpoint() + '/' + objectKey)
                 .presignedUrl(presignedUrl)
                 .expiresIn(expirationMinutes + " minutes")
                 .build();
+        
+        log.info("{} | userId: {} | type: {} | objectKey: {}", 
+            HttpCodeEnum.SUCCESS.getMsg(), userId, uploadD.getType(), objectKey);
+        return uploadV;
     }
     
 }

@@ -7,8 +7,4 @@ public class ContentConstants {
     public static final String STATUS_REVIEW = "review";
     public static final String STATUS_BAN = "ban";
     public static final String STATUS_DRAFT = "draft";
-
-    //
-
-
 }

@@ -1,4 +1,4 @@
-package org.software.user.handler;
+package org.software.common.interceptor;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
@@ -7,8 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 /**
- * MyBatis-Plus 自动填充处理器
- * 用于自动填充创建时间和更新时间
+ * MyBatis-Plus
  * 
  * @author Ra1nbot
  * @since 2025-11-11

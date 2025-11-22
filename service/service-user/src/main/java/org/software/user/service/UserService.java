@@ -3,12 +3,10 @@ package org.software.user.service;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.software.model.content.media.UploadD;
-import org.software.model.exception.SystemException;
+import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.user.*;
-
-import java.util.List;
 
 
 /**
@@ -19,18 +17,18 @@ import java.util.List;
  */
 public interface UserService extends IService<User> {
 
-    SaTokenInfo validateEmailLogin(EmailLoginRequest loginRequest) throws SystemException;
+    SaTokenInfo validateEmailLogin(EmailLoginRequest loginRequest) throws BusinessException;
 
-    SaTokenInfo validateUsernameLogin(UsernameLoginRequest loginRequest) throws SystemException;
+    SaTokenInfo validateUsernameLogin(UsernameLoginRequest loginRequest) throws BusinessException;
 
-    void updatePassword(PasswordView passV) throws SystemException;
+    void updatePassword(PasswordView passV) throws BusinessException;
 
-    void register(RegisterRequest registerRequest) throws SystemException;
+    void register(RegisterRequest registerRequest) throws BusinessException;
 
     PageResult bPage(PageQuery pageQuery, PageUserD pageUserD);
 
-    String updateAvatar(UploadD uploadD) throws SystemException;
+    String updateAvatar(UploadD uploadD) throws BusinessException;
 
-    String updateBG(UploadD uploadD) throws SystemException;
+    String updateBG(UploadD uploadD) throws BusinessException;
 }
 

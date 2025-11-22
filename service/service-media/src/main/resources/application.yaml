@@ -15,6 +15,9 @@ sa-token:
   jwt-secret-key: 202315SZU202315SZU202315SZU202315SZU202315SZU2023
 
 spring:
+  profiles:
+    active: dev  # 或 test、prod
+
   application:
     name: service-media
 

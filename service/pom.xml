@@ -42,6 +42,13 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
+        <!-- common -->
+        <dependency>
+            <groupId>org.software</groupId>
+            <artifactId>common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <!-- loadbalancer -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

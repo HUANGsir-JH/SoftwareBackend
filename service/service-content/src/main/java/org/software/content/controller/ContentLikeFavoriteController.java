@@ -1,8 +1,8 @@
 package org.software.content.controller;
 
-import org.software.content.dto.ContentLikeFavoriteDTO;
+import org.software.model.content.dto.ContentLikeFavoriteDTO;
 import org.software.content.service.ContentLikeFavoriteService;
-import org.software.content.dto.ContentLikeFavoriteVO;
+import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.software.model.Response;
 import org.springframework.web.bind.annotation.*;
 

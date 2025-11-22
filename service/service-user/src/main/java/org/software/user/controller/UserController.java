@@ -1,12 +1,10 @@
 package org.software.user.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import org.software.feign.MediaFeignClient;
 import org.software.model.Response;
 import org.software.model.constants.UserConstants;
 import org.software.model.content.media.UploadD;
-import org.software.model.exception.SystemException;
+import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.user.PageUserD;
@@ -15,8 +13,6 @@ import org.software.model.user.User;
 import org.software.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ServerWebExchange;
 
 @RestController
 @RequestMapping("/user")
@@ -43,19 +39,19 @@ public class UserController {
     }
 
     @PutMapping("/password")
-    public Response updatePassword(@RequestBody PasswordView passV) throws SystemException {
+    public Response updatePassword(@RequestBody PasswordView passV) throws BusinessException {
         userService.updatePassword(passV);
         return Response.success();
     }
 
     @PostMapping("/avatar")
-    public Response uploadAvatar(@RequestBody UploadD uploadD) throws SystemException {
+    public Response uploadAvatar(@RequestBody UploadD uploadD) throws BusinessException {
         String url = userService.updateAvatar(uploadD);
         return Response.success(url);
     }
 
     @GetMapping("/backImage")
-    public Response uploadBackImage(@RequestBody UploadD uploadD) throws SystemException {
+    public Response uploadBackImage(@RequestBody UploadD uploadD) throws BusinessException {
         String url = userService.updateBG(uploadD);
         return Response.success(url);
     }

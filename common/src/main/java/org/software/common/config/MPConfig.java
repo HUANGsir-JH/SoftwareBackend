@@ -1,4 +1,4 @@
-package org.software.user.config;
+package org.software.common.config;
 
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class MPConfig {
-    /**
-     * 3.4.0之后版本
-     * @return
-     */
+
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor(){
         MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();

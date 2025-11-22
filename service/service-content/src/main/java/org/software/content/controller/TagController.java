@@ -1,11 +1,10 @@
 // org.software.content.tag.controller.TagController
 package org.software.content.controller;
 
-import org.software.content.dto.TagDTO;
+import org.software.model.content.dto.TagDTO;
 import org.software.content.service.TagService;
-import org.software.content.dto.TagVO;
+import org.software.model.content.vo.TagVO;
 import org.software.model.Response;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -3,7 +3,7 @@ package org.software.user.controller;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import org.software.model.Response;
-import org.software.model.exception.SystemException;
+import org.software.model.exception.BusinessException;
 import org.software.model.user.EmailLoginRequest;
 import org.software.model.user.RegisterRequest;
 import org.software.model.user.UsernameLoginRequest;
@@ -32,7 +32,7 @@ public class LoginController {
      * @return 返回token和userId
      */
     @PostMapping("/login/email")
-    public Object loginByEmail(@RequestBody EmailLoginRequest loginRequest) throws SystemException {
+    public Response loginByEmail(@RequestBody EmailLoginRequest loginRequest) throws BusinessException {
         SaTokenInfo token = userService.validateEmailLogin(loginRequest);
         return Response.success(Map.of("userId", token.getLoginId(), "token", token.getTokenValue()));
     }
@@ -45,7 +45,7 @@ public class LoginController {
      * @return 返回token和id
      */
     @PostMapping("/login/username")
-    public Object loginByUsername(@RequestBody UsernameLoginRequest loginRequest) throws SystemException {
+    public Response loginByUsername(@RequestBody UsernameLoginRequest loginRequest) throws BusinessException {
         SaTokenInfo token = userService.validateUsernameLogin(loginRequest);
         return Response.success(Map.of("userId", token.getLoginId(), "token", token.getTokenValue()));
     }
@@ -61,7 +61,7 @@ public class LoginController {
      * @return 注册结果
      */
     @PostMapping("/register")
-    public Object register(@RequestBody RegisterRequest registerRequest) throws SystemException {
+    public Response register(@RequestBody RegisterRequest registerRequest) throws BusinessException {
         userService.register(registerRequest);
         return Response.success();
     }
@@ -74,7 +74,7 @@ public class LoginController {
      * @return 登出结果
      */
     @PutMapping("/logout")
-    public Object logout() {
+    public Response logout() {
         StpUtil.logout();
         return Response.success();
     }

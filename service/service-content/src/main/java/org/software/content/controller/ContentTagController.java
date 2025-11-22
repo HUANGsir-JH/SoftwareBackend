@@ -1,6 +1,6 @@
 package org.software.content.controller;
 
-import org.software.content.dto.ContentTagDTO;
+import org.software.model.content.dto.ContentTagDTO;
 import org.software.content.service.ContentTagService;
 import org.software.model.Response;
 import org.springframework.web.bind.annotation.*;

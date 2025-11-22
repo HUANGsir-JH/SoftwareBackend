@@ -1,2 +1,6 @@
 server:
   port: 7004
+
+spring:
+  profiles:
+      active: dev  # 或 test、prod

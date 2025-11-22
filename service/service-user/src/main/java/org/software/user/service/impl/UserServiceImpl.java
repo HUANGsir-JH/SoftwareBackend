@@ -2,20 +2,19 @@ package org.software.user.service.impl;
 
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
-import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.software.feign.MediaFeignClient;
 import org.software.model.Response;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.constants.UserConstants;
 import org.software.model.content.media.UploadD;
 import org.software.model.content.media.UploadV;
-import org.software.model.exception.SystemException;
+import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.user.*;
@@ -24,7 +23,6 @@ import org.software.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +34,7 @@ import java.util.Objects;
  * @since 2025-11-09 00:11:21
  */
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Autowired
@@ -46,70 +45,81 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public SaTokenInfo validateEmailLogin(EmailLoginRequest loginRequest) throws SystemException {
+    public SaTokenInfo validateEmailLogin(EmailLoginRequest loginRequest) throws BusinessException {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", loginRequest.getEmail())
                 .eq("is_active", UserConstants.USER_ACTIVE);
         User user = userMapper.selectOne(queryWrapper);
 
         if (user == null) {
-            throw new SystemException(HttpCodeEnum.NEED_LOGIN);
+            log.warn("{} | email: {}", HttpCodeEnum.LOGIN_ERROR.getMsg(), loginRequest.getEmail());
+            throw new BusinessException(HttpCodeEnum.NEED_LOGIN);
         }
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
-            throw new SystemException(HttpCodeEnum.LOGIN_ERROR);
+            log.warn("{} | email: {}", HttpCodeEnum.LOGIN_ERROR.getMsg(), loginRequest.getEmail());
+            throw new BusinessException(HttpCodeEnum.LOGIN_ERROR);
         }
+
         StpUtil.login(user.getUserId());
+        log.info("用户登录 | user: {}", user.getUserId());
         return StpUtil.getTokenInfo();
 
     }
 
     @Override
-    public SaTokenInfo validateUsernameLogin(UsernameLoginRequest loginRequest) throws SystemException {
+    public SaTokenInfo validateUsernameLogin(UsernameLoginRequest loginRequest) throws BusinessException {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", loginRequest.getUsername())
                 .eq("is_active", UserConstants.USER_ACTIVE);
         User user = userMapper.selectOne(queryWrapper);
 
         if (user == null) {
-            throw new SystemException(HttpCodeEnum.NEED_LOGIN);
+            log.warn("{} | username: {}", HttpCodeEnum.LOGIN_ERROR.getMsg(), loginRequest.getUsername());
+            throw new BusinessException(HttpCodeEnum.NEED_LOGIN);
         }
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
-            throw new SystemException(HttpCodeEnum.LOGIN_ERROR);
+            log.warn(HttpCodeEnum.LOGIN_ERROR.getMsg());
+            throw new BusinessException(HttpCodeEnum.LOGIN_ERROR);
         }
         StpUtil.login(user.getUserId());
+        log.info("用户登录: {}", user.getUserId());
         return StpUtil.getTokenInfo();
     }
 
     @Override
-    public void updatePassword(PasswordView passV) throws SystemException {
-
+    public void updatePassword(PasswordView passV) throws BusinessException {
         Long userId = StpUtil.getLoginIdAsLong();
         User user = userMapper.selectById(userId);
         if (!passwordEncoder.matches(passV.getOldPassword(), user.getPassword())){
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "旧密码错误");
+            log.warn(HttpCodeEnum.LOGIN_ERROR.getMsg());
+            throw new BusinessException(HttpCodeEnum.LOGIN_ERROR);
         }
 
         if (Objects.equals(passV.getNewPassword(), passV.getOldPassword())) {
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "新密码不能与旧密码相同");
+            log.warn(HttpCodeEnum.OLD_AND_NEW_PASSWORD_SAME.getMsg());
+            throw new BusinessException(HttpCodeEnum.OLD_AND_NEW_PASSWORD_SAME);
         }
 
         if (!Objects.equals(passV.getNewPassword(), passV.getConfirmPassword())) {
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "两次输入的密码不一致");
+            log.warn(HttpCodeEnum.PASSWORD_NOT_MATCH.getMsg());
+            throw new BusinessException(HttpCodeEnum.PASSWORD_NOT_MATCH);
         }
 
         user.setPassword(passwordEncoder.encode(passV.getNewPassword()));
         updateById(user);
+        log.info("{} | userId: {}", HttpCodeEnum.SUCCESS.getMsg(), userId);
 
         StpUtil.logout();
     }
 
     @Override
-    public String updateAvatar(UploadD uploadD) throws SystemException {
+    public String updateAvatar(UploadD uploadD) throws BusinessException {
         Response response = mediaFeignClient.upload(uploadD);
         if (response.getCode() != HttpCodeEnum.SUCCESS.getCode() || response.getData() == null) {
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "生成预签名url失败");
+            log.warn("{} | uploadD: {}", HttpCodeEnum.UPLOAD_PRESIGNED_URL_FAILED.getMsg(), JSON.toJSONString(uploadD));
+            throw new BusinessException(HttpCodeEnum.UPLOAD_PRESIGNED_URL_FAILED);
         }
 
         String json = JSON.toJSONString(response.getData());
@@ -121,14 +131,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .avatar(list.get(0).getObjectKey())
                 .build();
         updateById(user);
+        log.info("{} | userId: {} | avatar: {}", HttpCodeEnum.SUCCESS.getMsg(), userId, list.get(0).getObjectKey());
         return list.get(0).getObjectKey();
     }
 
     @Override
-    public String updateBG(UploadD uploadD) throws SystemException {
+    public String updateBG(UploadD uploadD) throws BusinessException {
         Response response = mediaFeignClient.upload(uploadD);
         if (response.getCode() != HttpCodeEnum.SUCCESS.getCode() || response.getData() == null) {
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "生成预签名url失败");
+            log.warn("{} | uploadD: {}", HttpCodeEnum.UPLOAD_PRESIGNED_URL_FAILED.getMsg(), JSON.toJSONString(uploadD));
+            throw new BusinessException(HttpCodeEnum.UPLOAD_PRESIGNED_URL_FAILED);
         }
 
         String json = JSON.toJSONString(response.getData());
@@ -140,25 +152,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .backgroundImage(list.get(0).getObjectKey())
                 .build();
         updateById(user);
+        log.info("{} | userId: {} | backgroundImage: {}", HttpCodeEnum.SUCCESS.getMsg(), userId, list.get(0).getObjectKey());
         return list.get(0).getObjectKey();
     }
 
-
     @Override
-    public void register(RegisterRequest registerRequest) throws SystemException {
-        // 1.1 验证邮箱是否已被注册
-        Long cnt = userMapper.selectCount(new QueryWrapper<User>().eq("email", registerRequest.getEmail()));
-        if (cnt > 1) {
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "邮箱已被注册");
-        }
-        // 1.2 验证用户名是否已被注册
-        cnt = userMapper.selectCount(new QueryWrapper<User>().eq("username", registerRequest.getUsername()));
+    public void register(RegisterRequest registerRequest) throws BusinessException {
+        // 1. 验证邮箱和用户名是否已被注册
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", registerRequest.getEmail())
+                    .or()
+                    .eq("username", registerRequest.getUsername());
+
+        Long cnt = userMapper.selectCount(queryWrapper);
         if (cnt > 1){
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "用户名已被注册");
+            log.warn("{} | email: {} | username: {}", HttpCodeEnum.REGISTERED.getMsg(), registerRequest.getEmail(), registerRequest.getUsername());
+            throw new BusinessException(HttpCodeEnum.REGISTERED);
         }
+
         // 2. 验证两次密码是否相同
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
-            throw new SystemException(HttpCodeEnum.SYSTEM_ERROR.getCode(), "两次输入的密码不一致");
+            log.warn("{} | email: {}", HttpCodeEnum.PASSWORD_NOT_MATCH.getMsg(), registerRequest.getEmail());
+            throw new BusinessException(HttpCodeEnum.PASSWORD_NOT_MATCH);
         }
         // 3. 密码加密
         User user = User.builder()
@@ -169,11 +184,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .build();
         // 4. 保存用户信息
         userMapper.insert(user);
+        log.info("{} | userId: {} | email: {}", HttpCodeEnum.SUCCESS.getMsg(), user.getUserId(), user.getEmail());
     }
 
     // ==================================== B端 =================================================
     @Override
     public PageResult bPage(PageQuery pageQuery, PageUserD pageUserD) {
+        log.info("用户列表查询 | pageNum: {} pageSize: {} filters: {}", pageQuery.getPageNum(), pageQuery.getPageSize(), JSON.toJSONString(pageUserD));
         Page<User> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
 
         QueryWrapper<User> wrapper = new QueryWrapper<>();

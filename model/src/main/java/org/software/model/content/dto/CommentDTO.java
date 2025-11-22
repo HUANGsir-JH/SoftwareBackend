@@ -1,4 +1,4 @@
-package org.software.content.dto;
+package org.software.model.content.dto;
 
 import lombok.Data;
 

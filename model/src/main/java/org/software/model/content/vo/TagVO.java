@@ -1,5 +1,5 @@
 // org.software.content.dto.TagVO封装响应数据
-package org.software.content.dto;
+package org.software.model.content.vo;
 
 import lombok.Data;
 

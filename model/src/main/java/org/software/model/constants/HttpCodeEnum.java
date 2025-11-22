@@ -5,29 +5,48 @@ import lombok.Getter;
 @Getter
 public enum HttpCodeEnum {
     // 成功与基础错误
-    SUCCESS(200,"操作成功"),
-    NEED_LOGIN(401,"需要登录后操作"),
-    NO_OPERATOR_AUTH(403,"无权限操作"),
-    SYSTEM_ERROR(500,"出现错误"),
-    LOGIN_ERROR(505,"用户名或密码错误"),
+    SUCCESS(200, "操作成功"),
+    PARAM_ERROR(400, "请求参数错误"),
+    NEED_LOGIN(401, "需要登录后操作"),
+    NO_OPERATOR_AUTH(403, "无权限操作"),
+    RESOURCE_NOT_FOUND(404, "资源不存在"),
+    SYSTEM_ERROR(500, "服务器开小差了，请稍后再试吧"),
 
-    // 业务参数校验错误（新增）
-    PARAM_NULL(40001,"参数不能为空"),
-    TAG_NAME_NULL(40002,"标签名称不能为空"),
-    TAG_ID_NULL(40003,"标签ID不能为空"),
-    CONTENT_ID_NULL(40004,"内容ID不能为空"),
-    TAG_IDS_NULL(40005,"标签ID列表不能为空"),
-    USER_ID_NULL(40006,"用户ID不能为空"),
-    TYPE_NULL(40007,"操作类型不能为空"),
-    COMMENT_CONTENT_NULL(40008,"评论内容不能为空"),
-    ROOT_COMMENT_ID_NULL(40009,"父评论ID存在时，根评论ID不能为空"),
+    // 10xxxx 用户服务
+    LOGIN_ERROR(101001, "用户名或密码错误"),
+    USER_NOT_EXIST(101002, "用户不存在"),
+    USER_DISABLED(101003, "用户已被禁用"),
+    REGISTERED(101004, "邮箱或用户名已被注册"),
+    PASSWORD_NOT_MATCH(101007, "两次输入的密码不一致"),
+    OLD_AND_NEW_PASSWORD_SAME(101008, "新密码不能与旧密码相同"),
+    UPLOAD_PRESIGNED_URL_FAILED(101009, "生成预签名URL失败"),
 
-    // 业务资源校验错误（新增）
-    RESOURCE_NOT_EXIST(40401,"资源不存在或已删除"),
-    RESOURCE_DUPLICATE(40901,"资源已存在"),
-    TAG_NAME_DUPLICATE(40902,"标签名称已存在"),
-    INVALID_TAG(40010,"存在无效或已删除的标签"),
-    INVALID_TYPE(40011,"不支持的操作类型，仅支持'like'");
+    // 20xxxx 内容服务
+    // 201xxx 评论服务
+    COMMENT_NOT_FOUND(201001, "评论不存在"),
+    COMMENT_ADDED_SUCCESS(201002, "评论添加成功"),
+    PARENT_COMMENT_NOT_FOUND(201003, "父评论不存在"),
+    INVALID_TYPE(201004, "不支持的操作类型"),
+    
+    // 202xxx 标签服务
+    TAG_NAME_DUPLICATE(202001, "标签名称已存在"),
+    INVALID_TAG(202002, "无效的标签"),
+
+    // 30xxxx 媒体服务
+    // 301xxx 文件验证
+    FILE_NULL(301001, "文件不能为空"),
+    FILE_SIZE_EXCEEDED(301002, "文件大小超出限制"),
+    FILE_TYPE_NOT_RECOGNIZED(301003, "无法识别文件类型"),
+    FILE_TYPE_NOT_SUPPORTED(301004, "不支持的文件类型"),
+    FILE_EXTENSION_MISMATCH(301005, "文件扩展名与实际类型不匹配"),
+    
+    // 302xxx 文件操作
+    OBJECT_NAME_NULL(302001, "对象名称不能为空"),
+    INPUT_STREAM_NULL(302002, "输入流不能为空"),
+    BUCKET_NAME_NULL(302003, "存储桶名称不能为空"),
+    EXPIRATION_INVALID(302004, "过期时间无效"),
+    FILE_UPLOAD_FAILED(302005, "文件上传失败"),
+    PRESIGNED_URL_GENERATE_FAILED(302006, "生成预签名URL失败");
 
     final int code;
     final String msg;
