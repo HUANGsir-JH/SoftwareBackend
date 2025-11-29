@@ -2,6 +2,7 @@ package org.software.user.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import org.software.model.Response;
+import org.software.model.exception.BusinessException;
 import org.software.model.social.FindFriendRequest;
 import org.software.model.social.Friends;
 import org.software.model.social.SendMessageRequest;
@@ -42,7 +43,7 @@ public class FriendController {
      * 添加好友
      */
     @PostMapping
-    public Response addFriend(@RequestBody Long friendId) {
+    public Response addFriend(@RequestBody Long friendId) throws BusinessException {
         Long userId = StpUtil.getLoginIdAsLong();
         friendsService.addFriend(userId, friendId);
         return Response.success();

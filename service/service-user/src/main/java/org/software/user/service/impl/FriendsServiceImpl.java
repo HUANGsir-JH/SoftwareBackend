@@ -6,10 +6,13 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.software.feign.NotificationFeignClient;
+import org.software.model.Response;
 import org.software.model.constants.FriendsConstants;
 import org.software.model.constants.UserConstants;
+import org.software.model.exception.BusinessException;
 import org.software.model.social.FindFriendRequest;
 import org.software.model.social.Friends;
+import org.software.model.social.UnreadCounts;
 import org.software.model.social.priv.PrivateConversations;
 import org.software.model.user.User;
 import org.software.user.mapper.FriendsMapper;
@@ -74,12 +77,16 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
         redisHelper.removeSet(UserConstants.USER_KEY + userId + FriendsConstants.FRIEND_KEY);
     }
 
-    @GlobalTransactional
+    @Transactional
     @Override
-    public void addFriend(Long userId, Long friendId) {
+    public void addFriend(Long userId, Long friendId) throws BusinessException {
+        if (redisHelper.isMember(UserConstants.USER_KEY + userId + FriendsConstants.FRIEND_KEY, friendId)){
+            throw new BusinessException("你们已经是好友了");
+        }
+
         Friends friends = Friends.builder()
-                .userId(userId)
-                .friendId(friendId)
+                .userId(userId > friendId ? friendId : userId)
+                .friendId(userId > friendId ? userId : friendId)
                 .status(FriendsConstants.PENDING)
                 .requestedAt(DateTime.now())
                 .build();
@@ -87,8 +94,6 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
         save(friends);
 
         redisHelper.removeSet(UserConstants.USER_KEY + userId + FriendsConstants.FRIEND_KEY);
-
-        notificationFeignClient.addConv(friendId);
     }
 
     @Override
@@ -101,6 +106,7 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
         return userService.list(queryWrapper);
     }
 
+    @GlobalTransactional
     @Override
     public void agreeAddFriendRequest(Long userId, Long friendshipId) {
         UpdateWrapper<Friends> updateWrapper = new UpdateWrapper<>();
@@ -111,6 +117,12 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
         update(updateWrapper);
 
         redisHelper.removeSet(UserConstants.USER_KEY + userId + FriendsConstants.FRIEND_KEY);
+
+        QueryWrapper<Friends> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("friendship_id", friendshipId);
+        Friends friends = getOne(queryWrapper);
+
+        notificationFeignClient.addConv(friends.getFriendId());
     }
 
     @Override
@@ -125,7 +137,8 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
     @Override
     public List<Friends> getNewFriendRequests(Long userId) {
         QueryWrapper<Friends> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("user_id", userId)
+                .eq("status", FriendsConstants.PENDING);
         return list(queryWrapper);
     }
 }

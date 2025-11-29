@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.software.notification.mapper.UnreadCountsMapper">
+    <insert id="batchInsert">
+        INSERT INTO unread_counts (conversation_id, userId, unread_count)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.conversationId}, #{item.userId}, #{item.unreadCount})
+        </foreach>
+    </insert>
+</mapper>

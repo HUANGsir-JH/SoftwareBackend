@@ -1,36 +1,26 @@
 package org.software.notification.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.apache.http.config.MessageConstraints;
-import org.checkerframework.checker.units.qual.A;
-import org.software.common.util.RedisHelper;
-import org.software.feign.UserFeignClient;
-import org.software.model.Response;
-import org.software.model.constants.FriendsConstants;
 import org.software.model.constants.MessageConstants;
-import org.software.model.constants.UserConstants;
 import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.social.SendMessageRequest;
+import org.software.model.social.UnreadCounts;
 import org.software.model.social.priv.PrivateConversations;
 import org.software.model.social.priv.PrivateMessages;
-import org.software.model.user.User;
-import org.software.model.user.UserV;
-import org.software.notification.mapper.PrivateConversationsMapper;
 import org.software.notification.mapper.PrivateMessagesMapper;
+import org.software.notification.mapper.UnreadCountsMapper;
 import org.software.notification.service.PrivateConversationsService;
 import org.software.notification.service.PrivateMessagesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,6 +34,8 @@ public class PrivateMessagesServiceImpl extends ServiceImpl<PrivateMessagesMappe
 
     @Autowired
     private PrivateConversationsService privateConversationsService;
+    @Autowired
+    private UnreadCountsMapper unreadCountsMapper;
 
     @Override
     public PageResult getPrivateMessageDetail(PageQuery query, Long conversationId) throws Exception {
@@ -98,9 +90,13 @@ public class PrivateMessagesServiceImpl extends ServiceImpl<PrivateMessagesMappe
                         .lastMessageId(privateMessages.getMessageId()).build();
         privateConversationsService.updateConv(privateConversations);
 
+        // TODO: redis优化？
         // 未读计数
-
-        // 推送
+        UpdateWrapper<UnreadCounts> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("unread_counts", "unread_counts + 1")
+                .eq("conversation_id", request.getConversationId())
+                .eq("user_id", request.getFriendId());
+        unreadCountsMapper.update(null, updateWrapper);
     }
 }
 

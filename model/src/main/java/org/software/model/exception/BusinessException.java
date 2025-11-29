@@ -7,7 +7,7 @@ import org.software.model.constants.HttpCodeEnum;
 
 @Getter
 @AllArgsConstructor
-public class BusinessException extends Exception{
+public class BusinessException extends RuntimeException {
     Integer code;
     String message;
 

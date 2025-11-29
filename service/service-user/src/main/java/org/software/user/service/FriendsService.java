@@ -1,6 +1,7 @@
 package org.software.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.software.model.exception.BusinessException;
 import org.software.model.social.FindFriendRequest;
 import org.software.model.social.Friends;
 import org.software.model.user.User;
@@ -23,7 +24,7 @@ public interface FriendsService extends IService<Friends> {
 
     void delFriend(Long userId, Long friendId);
 
-    void addFriend(Long userId, Long friendId);
+    void addFriend(Long userId, Long friendId) throws BusinessException;
 
     List<User> findFriend(FindFriendRequest request);
 

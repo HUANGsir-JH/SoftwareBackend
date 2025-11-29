@@ -8,13 +8,16 @@ import org.software.feign.UserFeignClient;
 import org.software.model.Response;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
+import org.software.model.social.UnreadCounts;
 import org.software.model.social.priv.PrivateConversations;
 import org.software.model.user.UserV;
 import org.software.notification.mapper.PrivateConversationsMapper;
+import org.software.notification.mapper.UnreadCountsMapper;
 import org.software.notification.service.PrivateConversationsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,9 +33,11 @@ public class PrivateConversationsServiceImpl extends ServiceImpl<PrivateConversa
     private PrivateConversationsMapper privateConversationsMapper;
     @Autowired
     private UserFeignClient userFeignClient;
+    @Autowired
+    private UnreadCountsMapper unreadCountsMapper;
 
     @Override
-    public void addConv(Long friendId) {
+    public PrivateConversations addConv(Long friendId) {
         long userId = StpUtil.getLoginIdAsLong();
 
         PrivateConversations conv = PrivateConversations.builder()
@@ -41,6 +46,24 @@ public class PrivateConversationsServiceImpl extends ServiceImpl<PrivateConversa
                 .build();
 
         save(conv);
+
+        UnreadCounts uc1 = UnreadCounts.builder()
+                .conversationId(conv.getConversationId())
+                .unreadCount(0)
+                .userId(userId)
+                .build();
+
+        UnreadCounts uc2 = UnreadCounts.builder()
+                .conversationId(conv.getConversationId())
+                .unreadCount(0)
+                .userId(friendId)
+                .build();
+
+        List<UnreadCounts> ucs = Arrays.asList(uc1, uc2);
+
+        unreadCountsMapper.batchInsert(ucs);
+
+        return conv;
     }
 
     @Override

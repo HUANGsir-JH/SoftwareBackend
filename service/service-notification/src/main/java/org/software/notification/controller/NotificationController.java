@@ -45,7 +45,6 @@ public class NotificationController {
 
     @PostMapping("/addConv")
     public Response addConv(@RequestBody Long friendId) {
-        privateConversationsService.addConv(friendId);
-        return Response.success();
+        return Response.success(privateConversationsService.addConv(friendId));
     }
 }

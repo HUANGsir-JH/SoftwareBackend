@@ -14,7 +14,7 @@ import org.software.model.social.priv.PrivateConversations;
  */
 public interface PrivateConversationsService extends IService<PrivateConversations> {
 
-    void addConv(Long friendId);
+    PrivateConversations addConv(Long friendId);
 
     PageResult getPrivateChatList(PageQuery query);
 
