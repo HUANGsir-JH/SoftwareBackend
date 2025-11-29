@@ -11,4 +11,6 @@ public class UserConstants{
     public static final String PRIVATE = "private";
 
     public static final Long ADMIN_USER_ID = 1L;
+
+    public static final String USER_KEY = "user:";
 }

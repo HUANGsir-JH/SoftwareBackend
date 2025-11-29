@@ -22,8 +22,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public Response getUser() {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Response getUser(Long userId) {
         return Response.success(userService.getById(userId));
     }
 

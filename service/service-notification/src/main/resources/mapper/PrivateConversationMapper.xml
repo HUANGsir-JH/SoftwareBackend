@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.software.notification.mapper.PrivateConversationsMapper">
+
+  <resultMap id="PrivateConversationsMap" type="org.software.model.social.priv.PrivateConversations">
+    <id column="conversation_id" property="conversationId" />
+    <result column="user1_id" property="user1Id" />
+    <result column="user2_id" property="user2Id" />
+    <result column="last_contact_time" property="lastContactTime" />
+    <result column="last_message_id" property="lastMessageId" />
+    <result column="created_at" property="createdAt" />
+    <result column="updated_at" property="updatedAt" />
+    <result column="deleted_at" property="deletedAt" />
+
+    <!-- 扩展字段 -->
+    <result column="unread_count" property="unreadCount" />
+    <result column="last_message" property="lastMessage" />
+    <association property="friend" javaType="org.software.model.user.User">
+      <id column="friend_user_id" property="userId" />
+    </association>
+  </resultMap>
+
+  <!--
+    分页方法 `pageC`：
+      - 通过 userId 查找该用户参与的私聊会话
+      - 按最后聊天时间倒序排序
+      - 关联最后一条消息内容到 `lastMessage`
+      - 统计未读消息数到 `unreadCount`（消息为对方发送且 is_read = 0）
+    注意：调用处应使用分页插件（例如 PageHelper.startPage(...)）或 MyBatis-Plus 的分页能力来完成分页。
+  -->
+  <select id="pageC" resultMap="PrivateConversationsMap" parameterType="java.lang.Long">
+    SELECT pc.conversation_id,
+           pc.user1_id,
+           pc.user2_id,
+           pc.last_contact_time,
+           pc.last_message_id,
+           pc.created_at,
+           pc.updated_at,
+           pc.deleted_at,
+
+           -- 最新消息内容（由 last_message_id 关联）
+           m.content AS last_message,
+
+           -- 未读消息数：会话内未被标记为已读且发送者不是当前用户
+           uc.unread_count,
+
+           -- 好友id
+           (IF(pc.user1_id = #{userId}, pc.user2_id, pc.user1_id)) AS friend_user_id
+
+    FROM private_conversations pc
+           LEFT JOIN private_messages m ON m.message_id = pc.last_message_id
+           LEFT JOIN unread_counts uc ON uc.conversation_id = pc.conversation_id and uc.user_id = #{userId}
+
+    WHERE (pc.user1_id = #{userId} or pc.user2_id = #{userId})
+      and m.deleted_at is null
+
+    ORDER BY pc.last_contact_time DESC
+  </select>
+
+</mapper>

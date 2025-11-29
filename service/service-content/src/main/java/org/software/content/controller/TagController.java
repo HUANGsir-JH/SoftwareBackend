@@ -21,7 +21,7 @@ public class TagController {
     }
 
     @PostMapping
-    public Response  addTag(@RequestBody TagDTO tagDTO) throws BusinessException {
+    public Response addTag(@RequestBody TagDTO tagDTO) throws BusinessException {
         boolean result = tagService.addTag(tagDTO);
         return Response.success(result);
     }
