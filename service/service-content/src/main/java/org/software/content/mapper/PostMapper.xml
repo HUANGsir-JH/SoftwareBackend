@@ -1,0 +1,42 @@
+<select id="selectSimplePage" resultType="org.software.model.content.post.PostE">
+    SELECT
+    p.content_id,
+    p.user_id,
+    u.id AS user_id,
+    u.username,
+    u.avatar_url,
+    p.content_type,
+    m.file_url AS first_media_file_url,
+    m.type AS first_media_type,
+    p.title,
+    p.like_count,
+    p.created_at,
+    p.updated_at
+    FROM post p
+    LEFT JOIN user u ON p.user_id = u.id
+    LEFT JOIN content_media m
+    ON p.content_id = m.content_id AND m.order_no = 1
+    ${ew.customSqlSegment}
+</select>
+
+<select id="selectFriendPage" resultType="org.software.model.content.post.PostE">
+SELECT
+p.content_id,
+p.user_id,
+u.id AS user_id,
+u.username,
+u.avatar AS avatar,
+u.nickname AS nickname,
+p.content_type,
+CASE WHEN p.content_type = 'video' THEN p.cover_url ELSE p.cover_url END AS first_media_file_url,
+CASE WHEN p.content_type = 'video' THEN 'video' ELSE 'image' END AS first_media_type,
+p.title,
+p.like_count,
+p.created_at,
+p.updated_at,
+p.deleted_at
+FROM post p
+LEFT JOIN user u ON p.user_id = u.id
+${ew.customSqlSegment}
+</select>
+
