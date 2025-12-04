@@ -39,15 +39,7 @@ public class ContentController{
      */
     @PostMapping
     public Response create(@RequestBody ContentD contentD){
-        // TODO: 从 token 中获取当前登录用户的 userId 并设置到 contentD
-//        Long userId = (Long) SecurityContextHolder.getContext()
-//                .getAuthentication().getPrincipal();
-        Integer userId = StpUtil.getLoginIdAsInt();
-        // 或者通过 @RequestHeader("userId") Integer userId 从请求头获取
-        
-        // 调用 service 层创建帖子
         Long result = contentService.create(contentD);
-        
         return Response.success(result);
     }
 
@@ -57,10 +49,9 @@ public class ContentController{
      */
     @GetMapping
     public Response getMyContent(PageQuery pageQuery){
-        // TODO: 从token中获取userId
-        Integer userId = StpUtil.getLoginIdAsInt();
+        Long userId = StpUtil.getLoginIdAsLong();
         // TODO: 实现分页查询我的帖子
-        PostPage result = contentService.getMyContent(pageQuery, Long.valueOf(userId));
+        PostPage result = contentService.getMyContent(pageQuery, userId);
         return Response.success(result);
     }
 
@@ -112,30 +103,6 @@ public class ContentController{
     }
 
     /**
-     * 上传帖子图像
-     * POST /content/{contentId}/image
-     */
-    @PostMapping("/{contentId}/image")
-    public Response uploadImage(@PathVariable Integer contentId, @RequestParam("file") MultipartFile file){
-        // TODO: 验证帖子所有权
-        // TODO: 调用媒体服务上传图片
-        // TODO: 保存媒体文件关联信息
-        return Response.success();
-    }
-
-    /**
-     * 上传帖子视频
-     * POST /content/{contentId}/video
-     */
-    @PostMapping("/{contentId}/video")
-    public Response uploadVideo(@PathVariable Integer contentId, @RequestParam("file") MultipartFile file){
-        // TODO: 验证帖子所有权
-        // TODO: 调用媒体服务上传视频
-        // TODO: 保存媒体文件关联信息
-        return Response.success();
-    }
-
-    /**
      * 创建文字图像
      * POST /content/gen-image
      */
@@ -151,10 +118,9 @@ public class ContentController{
      */
     @GetMapping("/all/friend")
     public Response getAllFriendContent(PageQuery pageQuery){
-        // TODO: 从token中获取userId
+        Long userId = StpUtil.getLoginIdAsLong();
         // TODO: 查询所有好友的帖子（分页）
-        Integer userId = StpUtil.getLoginIdAsInt();
-        PostPage result = contentService.getAllFriendContent(pageQuery, Long.valueOf(userId));
+        PostPage result = contentService.getAllFriendContent(pageQuery, userId);
         return Response.success(result);
 
     }

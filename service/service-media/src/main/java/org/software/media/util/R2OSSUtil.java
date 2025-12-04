@@ -110,7 +110,7 @@ public class R2OSSUtil {
 
         // 1. 大小校验
         if (size > maxSizeBytes) {
-            log.warn("{} | scenario: {} | maxSize: {}MB | actualSize: {:.2f}MB", 
+            log.warn("{} | scenario: {} | maxSize: {}MB | actualSize: {}MB",
                 HttpCodeEnum.FILE_SIZE_EXCEEDED.getMsg(), scenarioName, 
                 maxSizeBytes / (1024 * 1024), size / (1024.0 * 1024.0));
             throw new IllegalArgumentException(
@@ -163,7 +163,7 @@ public class R2OSSUtil {
         String ext = MIME_TO_EXT.getOrDefault(CT, "jpg"); // 默认 jpg
 
         // 安全路径：avatars/{userId}/{timestamp}_{uuid}.{ext}
-        String objectKey = String.format("images/%s/%d_%s.%s",
+        String objectKey = String.format(uploadD.getType() + "/%s/%d_%s.%s",
                 userId,
                 System.currentTimeMillis(),
                 UUID.randomUUID().toString().replace("-", "").substring(0, 8),
@@ -355,8 +355,8 @@ public class R2OSSUtil {
             int expirationMinutes
     ) {
         String objectKey = switch (uploadD.getType().toLowerCase()) {
-            case "images" -> generateAvatarObjectKey(uploadD, userId);
-            case "feeds" -> generateFeedMediaObjectKey(uploadD, userId);
+            case "image", "avatar" -> generateAvatarObjectKey(uploadD, userId);
+            case "feed" -> generateFeedMediaObjectKey(uploadD, userId);
             default -> throw new IllegalArgumentException("不支持的场景类型: " + uploadD.getType());
         };
 

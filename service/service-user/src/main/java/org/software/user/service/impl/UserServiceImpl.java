@@ -2,13 +2,15 @@ package org.software.user.service.impl;
 
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
-import org.software.feign.MediaFeignClient;
+import org.software.common.util.RedisHelper;
 import org.software.model.Response;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.constants.UserConstants;
@@ -20,12 +22,16 @@ import org.software.model.page.PageResult;
 import org.software.model.user.*;
 import org.software.user.mapper.UserMapper;
 import org.software.user.service.UserService;
+import org.software.user.util.EmailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户表(User)表服务实现类
@@ -40,20 +46,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private UserMapper userMapper;
     @Autowired
-    private MediaFeignClient mediaFeignClient;
-    @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private EmailSender emailSender;
+    @Autowired
+    private RedisHelper redisHelper;
 
     @Override
     public SaTokenInfo validateEmailLogin(EmailLoginRequest loginRequest) throws BusinessException {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", loginRequest.getEmail())
-                .eq("is_active", UserConstants.USER_ACTIVE);
+                .eq("is_active", UserConstants.USER_ACTIVE)
+                .isNull("deleted_at");
+//                .eq("deleted_at", null);
         User user = userMapper.selectOne(queryWrapper);
 
         if (user == null) {
             log.warn("{} | email: {}", HttpCodeEnum.LOGIN_ERROR.getMsg(), loginRequest.getEmail());
-            throw new BusinessException(HttpCodeEnum.NEED_LOGIN);
+            throw new BusinessException(HttpCodeEnum.USER_NOT_EXIST);
         }
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
@@ -67,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     }
 
-    @Override
+   /* @Override
     public SaTokenInfo validateUsernameLogin(UsernameLoginRequest loginRequest) throws BusinessException {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", loginRequest.getUsername())
@@ -86,7 +96,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         StpUtil.login(user.getUserId());
         log.info("用户登录: {}", user.getUserId());
         return StpUtil.getTokenInfo();
-    }
+    }*/
 
     @Override
     public void updatePassword(PasswordView passV) throws BusinessException {
@@ -114,7 +124,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         StpUtil.logout();
     }
 
-    @Override
+    /*@Override
     public String updateAvatar(UploadD uploadD) throws BusinessException {
         Response response = mediaFeignClient.upload(uploadD);
         if (response.getCode() != HttpCodeEnum.SUCCESS.getCode() || response.getData() == null) {
@@ -154,19 +164,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateById(user);
         log.info("{} | userId: {} | backgroundImage: {}", HttpCodeEnum.SUCCESS.getMsg(), userId, list.get(0).getObjectKey());
         return list.get(0).getObjectKey();
+    }*/
+
+    @Override
+    public void deleteUser(Long userId) {
+        removeById(userId);
     }
 
     @Override
     public void register(RegisterRequest registerRequest) throws BusinessException {
-        // 1. 验证邮箱和用户名是否已被注册
+        // 1. 验证邮箱是否已被注册
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", registerRequest.getEmail())
-                    .or()
-                    .eq("username", registerRequest.getUsername());
+        queryWrapper.eq("email", registerRequest.getEmail());
+
 
         Long cnt = userMapper.selectCount(queryWrapper);
-        if (cnt > 1){
-            log.warn("{} | email: {} | username: {}", HttpCodeEnum.REGISTERED.getMsg(), registerRequest.getEmail(), registerRequest.getUsername());
+        if (cnt >= 1){
+            log.warn("{} | email: {}", HttpCodeEnum.REGISTERED.getMsg(), registerRequest.getEmail());
             throw new BusinessException(HttpCodeEnum.REGISTERED);
         }
 
@@ -178,7 +192,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 3. 密码加密
         User user = User.builder()
                 .email(registerRequest.getEmail())
-                .username(registerRequest.getUsername())
+                .nickname(registerRequest.getNickname())
+                .username("深小友" + UUID.randomUUID())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .isActive(UserConstants.USER_ACTIVE)
                 .build();
@@ -214,6 +229,54 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .pageSize(pageQuery.getPageSize())
                 .records(page.getRecords())
                 .build();
+    }
+
+    @Override
+    public void forgetPassword(String email) {
+        if (redisHelper.hasKey(email)) {
+            // 如果缓存中已存在验证码，抛出异常
+            log.warn("{} | email: {}", HttpCodeEnum.ALREADY_SEND.getMsg(), email);
+            throw new BusinessException("验证码已发送，请稍后再试");
+        }
+
+        String code = RandomUtil.randomNumbers(6);
+        // 将验证码存入缓存
+        redisHelper.addValue(UserConstants.FORGET_CODE_KEY + email, code, 5 * 60, TimeUnit.SECONDS);
+
+        // 发送验证码
+        emailSender.sendVerificationCodeEmail(email, code);
+        log.debug("发送验证码到邮箱: {}, 验证码: {}", email, code);
+    }
+
+    @Override
+    public String verifyCode(String email, String code) {
+        String cacheCode = redisHelper.getValue(UserConstants.FORGET_CODE_KEY + email);
+        if (cacheCode == null || !cacheCode.equals(code)) {
+            log.warn("{} | email: {}", HttpCodeEnum.CODE_ERROR.getMsg(), email);
+            throw new BusinessException(HttpCodeEnum.CODE_ERROR);
+        }
+        String token = UUID.randomUUID().toString();
+        redisHelper.addValue(UserConstants.FORGET_TOKEN_KEY + email, token, 3 * 60, TimeUnit.SECONDS);
+        return token;
+    }
+
+    @Override
+    public void forgetPasswordUpdate(PasswordView passV) {
+        String token = passV.getToken();
+        String cacheToken = redisHelper.getValue(UserConstants.FORGET_TOKEN_KEY + passV.getEmail());
+        if (!cacheToken.equals(token)) {
+            log.warn("{} | email: {}", HttpCodeEnum.TOKEN_INVALID.getMsg(), passV.getEmail());
+            throw new BusinessException(HttpCodeEnum.TOKEN_INVALID);
+        }
+
+        if (!Objects.equals(passV.getNewPassword(), passV.getConfirmPassword())) {
+            log.warn("{} | email: {}", HttpCodeEnum.PASSWORD_NOT_MATCH.getMsg(), passV.getEmail());
+            throw new BusinessException(HttpCodeEnum.PASSWORD_NOT_MATCH);
+        }
+        UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("password", passwordEncoder.encode(passV.getNewPassword()))
+                .eq("email", passV.getEmail());
+        update(updateWrapper);
     }
 }
 

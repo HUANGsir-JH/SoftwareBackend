@@ -47,6 +47,7 @@ public class User {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updatedAt;
     //软删除字段，填写删除操作时间，但是真实删除数据。
+    @TableLogic(value = "null", delval = "now()")
     private Date deletedAt;
 }
 

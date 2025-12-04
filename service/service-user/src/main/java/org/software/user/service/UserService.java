@@ -19,7 +19,7 @@ public interface UserService extends IService<User> {
 
     SaTokenInfo validateEmailLogin(EmailLoginRequest loginRequest) throws BusinessException;
 
-    SaTokenInfo validateUsernameLogin(UsernameLoginRequest loginRequest) throws BusinessException;
+//    SaTokenInfo validateUsernameLogin(UsernameLoginRequest loginRequest) throws BusinessException;
 
     void updatePassword(PasswordView passV) throws BusinessException;
 
@@ -27,8 +27,16 @@ public interface UserService extends IService<User> {
 
     PageResult bPage(PageQuery pageQuery, PageUserD pageUserD);
 
-    String updateAvatar(UploadD uploadD) throws BusinessException;
+/*    String updateAvatar(UploadD uploadD) throws BusinessException;
 
-    String updateBG(UploadD uploadD) throws BusinessException;
+    String updateBG(UploadD uploadD) throws BusinessException;*/
+
+    void deleteUser(Long userId);
+
+    void forgetPassword(String email);
+
+    void forgetPasswordUpdate(PasswordView passwordView);
+
+    String verifyCode(String email, String code);
 }
 

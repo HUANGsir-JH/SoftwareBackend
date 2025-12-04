@@ -38,4 +38,9 @@ public class Content {
     private Date updatedAt;
     // 软删除字段
     private Date deletedAt;
+
+    @TableField(exist = false)
+    private String[] medias;
+    @TableField(exist = false)
+    private Long[] tags;
 }

@@ -13,4 +13,6 @@ public class UserConstants{
     public static final Long ADMIN_USER_ID = 1L;
 
     public static final String USER_KEY = "user:";
+    public static final String FORGET_CODE_KEY = "forget:code:";
+    public static final String FORGET_TOKEN_KEY = "forget:token:";
 }

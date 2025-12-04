@@ -68,4 +68,16 @@ public class RedisHelper {
     public boolean setIfAbsent(String key, String value, long timeout, TimeUnit unit) {
         return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().setIfAbsent(key, value, timeout, unit));
     }
+
+    public <T> void addValue(String s, T value, int i, TimeUnit timeUnit) {
+        stringRedisTemplate.opsForValue().set(s, JSONUtil.toJsonStr(value), i, timeUnit);
+    }
+
+    public boolean hasKey(String email) {
+        return stringRedisTemplate.hasKey(email);
+    }
+
+    public String getValue(String key) {
+        return stringRedisTemplate.opsForValue().get(key);
+    }
 }

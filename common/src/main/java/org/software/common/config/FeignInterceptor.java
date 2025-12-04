@@ -1,6 +1,5 @@
-package org.software.user.config;
+package org.software.common.config;
 
-import cn.dev33.satoken.same.SaSameUtil;
 import cn.dev33.satoken.stp.StpUtil;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

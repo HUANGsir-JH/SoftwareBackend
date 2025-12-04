@@ -84,7 +84,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
 
 
         // TODO: 从 token 中获取当前登录用户的 userId
-        Integer userId = StpUtil.getLoginIdAsInt();
+        Long userId = StpUtil.getLoginIdAsLong();
 
 
         /*帖子详情内没有点赞收藏评论数
@@ -133,11 +133,11 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         LambdaQueryWrapper<PostE> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PostE::getUserId, userId);
         //这个status怎么传？
-       /* if ("draft".equals(status)) {
-            wrapper.eq(PostE::getStatus, "draft");
-        } else {
-            wrapper.ne(PostE::getStatus, "draft");
-        }*/
+//        if ("draft".equals(status)) {
+//            wrapper.eq(PostE::getStatus, "draft");
+//        } else {
+//            wrapper.ne(PostE::getStatus, "draft");
+//        }
         //时间过滤
         if (query.getStartTime() != null) {
             wrapper.ge(PostE::getCreatedAt, query.getStartTime());

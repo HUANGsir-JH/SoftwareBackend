@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PasswordView {
+public class EmailRequest {
     private String email;
-    private String token;
-    private String oldPassword;
-    private String newPassword;
-    private String confirmPassword;
 }

@@ -2,6 +2,7 @@ package org.software.model.constants;
 
 import lombok.Getter;
 
+
 @Getter
 public enum HttpCodeEnum {
     // 通用
@@ -16,10 +17,13 @@ public enum HttpCodeEnum {
     LOGIN_ERROR(101001, "用户名或密码错误"),
     USER_NOT_EXIST(101002, "用户不存在"),
     USER_DISABLED(101003, "用户已被禁用"),
-    REGISTERED(101004, "邮箱或用户名已被注册"),
+    REGISTERED(101004, "邮箱已被注册"),
     PASSWORD_NOT_MATCH(101007, "两次输入的密码不一致"),
     OLD_AND_NEW_PASSWORD_SAME(101008, "新密码不能与旧密码相同"),
     UPLOAD_PRESIGNED_URL_FAILED(101009, "生成预签名URL失败"),
+    ALREADY_SEND(101010, "验证码已发送，请注意查收"),
+    CODE_ERROR(101011, "验证码错误"),
+    TOKEN_INVALID(101012, "验证已过期，请重新验证"),
 
     // 20xxxx 内容服务
     // 201xxx 评论服务

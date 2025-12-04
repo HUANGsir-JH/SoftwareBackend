@@ -33,12 +33,7 @@ spring:
                 server-addr: ${SERVER}:8848
         gateway:
             routes:
-                -   id: service-user-public
-                    uri: lb://service-user
-                    predicates:
-                        - Path=/user/login, /user/register
-
-                -   id: service-user-private
+                -   id: service-user
                     uri: lb://service-user
                     predicates:
                         - Path=/user/**

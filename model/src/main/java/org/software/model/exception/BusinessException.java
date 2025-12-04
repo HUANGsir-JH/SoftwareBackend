@@ -20,14 +20,13 @@ public class BusinessException extends RuntimeException {
         this.code = HttpCodeEnum.SYSTEM_ERROR.getCode();
         this.message = msg;
     }
-    // 新增
+
     public BusinessException(HttpCodeEnum httpCodeEnum, Throwable cause) {
         super(cause);
         this.code = httpCodeEnum.getCode();
         this.message = httpCodeEnum.getMsg();
     }
 
-    // 新增
     public BusinessException(Integer code, String message, Throwable cause) {
         super(cause);
         this.code = code;

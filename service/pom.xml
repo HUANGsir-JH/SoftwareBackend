@@ -74,10 +74,6 @@
 
         <!-- openfeign -->
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.software</groupId>
             <artifactId>openfeign</artifactId>
             <version>0.0.1-SNAPSHOT</version>

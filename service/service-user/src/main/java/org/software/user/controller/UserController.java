@@ -38,21 +38,29 @@ public class UserController {
     }
 
     @PutMapping("/password")
-    public Response updatePassword(@RequestBody PasswordView passV) throws BusinessException {
+    public Response updatePassword(@RequestBody PasswordView passV) {
         userService.updatePassword(passV);
         return Response.success();
     }
 
-    @PostMapping("/avatar")
-    public Response uploadAvatar(@RequestBody UploadD uploadD) throws BusinessException {
+    /*@PostMapping("/avatar")
+    public Response uploadAvatar(@RequestBody UploadD uploadD) {
         String url = userService.updateAvatar(uploadD);
         return Response.success(url);
     }
 
     @GetMapping("/backImage")
-    public Response uploadBackImage(@RequestBody UploadD uploadD) throws BusinessException {
+    public Response uploadBackImage(@RequestBody UploadD uploadD) {
         String url = userService.updateBG(uploadD);
         return Response.success(url);
+    }*/
+
+    @DeleteMapping
+    public Response deleteUser(){
+        Long userId = StpUtil.getLoginIdAsLong();
+        userService.deleteUser(userId);
+        StpUtil.logout();
+        return Response.success();
     }
 
 // ========================= B端 ==============================

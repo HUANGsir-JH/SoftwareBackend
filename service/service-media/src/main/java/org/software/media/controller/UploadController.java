@@ -7,6 +7,7 @@ import org.software.model.content.media.UploadD;
 import org.software.model.content.media.UploadV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,4 +24,5 @@ public class UploadController {
         List<UploadV> list = mediaService.upload(uploadD);
         return Response.success(list);
     }
+
 }
