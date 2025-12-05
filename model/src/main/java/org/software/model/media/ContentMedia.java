@@ -1,4 +1,4 @@
-package org.software.model.content.media;
+package org.software.model.media;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

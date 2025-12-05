@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.software.model.content.media.ContentMedia;
+import org.software.model.media.ContentMedia;
 import org.software.model.content.tag.Tag;
 
 import java.util.Date;

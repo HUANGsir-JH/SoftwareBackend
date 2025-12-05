@@ -2,14 +2,15 @@ package org.software.user.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import org.software.model.Response;
+import org.software.model.constants.HttpCodeEnum;
 import org.software.model.constants.UserConstants;
-import org.software.model.content.media.UploadD;
 import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.user.PageUserD;
 import org.software.model.user.PasswordView;
 import org.software.model.user.User;
+import org.software.model.user.UserUpdateD;
 import org.software.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +28,13 @@ public class UserController {
     }
 
     @PutMapping
-    public Response updateUser(@RequestBody User user) {
+    public Response updateUser(@RequestBody UserUpdateD userD) {
         Long userId = StpUtil.getLoginIdAsLong();
-        user.setUserId(userId);
-        if (user.getPassword() != null) {
-            user.setPassword(null); // 禁止通过此接口修改密码
-        }
+        User user = User.builder()
+                .userId(userId)
+                .nickname(userD.getNickname())
+                .signature(userD.getSignature())
+                .sex(userD.getSex()).build();
         userService.updateById(user);
         return Response.success();
     }
@@ -77,8 +79,14 @@ public class UserController {
                 .userId(Long.valueOf(userId))
                 .isActive(UserConstants.USER_BANNED)
                 .build();
-        userService.updateById(user);
-        return Response.success();
+        boolean success = userService.updateById(user);
+        if (success) {
+            if (StpUtil.isLogin(userId)) {
+                StpUtil.logout(userId);
+            }
+            return Response.success();
+        }
+        throw new BusinessException(HttpCodeEnum.BAN_USER_FAIL);
     }
 
     @PutMapping("/b/{userId}")
@@ -87,8 +95,11 @@ public class UserController {
                 .userId(Long.valueOf(userId))
                 .isActive(UserConstants.USER_ACTIVE)
                 .build();
-        userService.updateById(user);
-        return Response.success();
+        boolean success = userService.updateById(user);
+        if (success) {
+            return Response.success();
+        }
+        throw new BusinessException(HttpCodeEnum.UNBAN_USER_FAIL);
     }
 
 

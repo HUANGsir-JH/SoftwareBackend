@@ -18,6 +18,8 @@ public enum HttpCodeEnum {
     USER_NOT_EXIST(101002, "用户不存在"),
     USER_DISABLED(101003, "用户已被禁用"),
     REGISTERED(101004, "邮箱已被注册"),
+    BAN_USER_FAIL(101005, "封禁失败"),
+    UNBAN_USER_FAIL(101006, "解封失败"),
     PASSWORD_NOT_MATCH(101007, "两次输入的密码不一致"),
     OLD_AND_NEW_PASSWORD_SAME(101008, "新密码不能与旧密码相同"),
     UPLOAD_PRESIGNED_URL_FAILED(101009, "生成预签名URL失败"),
