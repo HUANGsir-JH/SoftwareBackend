@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostPage {
+public class PostPage<T> {
     // 帖子总数
     private Integer total;
     // 当前第几页
@@ -20,5 +20,5 @@ public class PostPage {
     // 当前分页大小
     private Integer pageSize;
     // 帖子列表
-    private List<PostE> records;
+    private List<T> records;
 }
