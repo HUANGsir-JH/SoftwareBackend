@@ -21,6 +21,21 @@ import java.util.stream.Collectors;
 @Service
 public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavoriteMapper, ContentLikeFavorite> implements ContentLikeFavoriteService {
 
+
+    private void updateContentCounter(Integer contentId, String type, int delta) {
+
+        Content content = contentMapper.selectById(contentId);
+        if (content == null) return;
+
+        if ("like".equals(type)) {
+            content.setLikeCount(content.getLikeCount() + delta);
+        } else {
+            content.setFavoriteCount(content.getFavoriteCount() + delta);
+        }
+
+        contentMapper.updateById(content);
+    }
+    
     @Override
     @Transactional
     public boolean addOrCancelLike(ContentLikeFavoriteDTO dto) throws BusinessException {
@@ -64,6 +79,7 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
             boolean result = updateById(exist);
             log.info("取消点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
                 exist.getLikeId(), dto.getUserId(), dto.getContentId(), result);
+            updateContentCounter(dto.getContentId(), type, +1);
             return result;
         } else {
             // 不存在：新增
@@ -77,6 +93,7 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
             boolean result = save(like);
             log.info("添加点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
                 like.getLikeId(), dto.getUserId(), dto.getContentId(), result);
+            updateContentCounter(dto.getContentId(), type, +1);
             return result;
         }
     }
