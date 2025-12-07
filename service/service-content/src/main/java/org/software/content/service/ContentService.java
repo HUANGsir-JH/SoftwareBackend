@@ -1,10 +1,12 @@
 package org.software.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.software.content.dto.ContentDetailDto;
 import org.software.content.dto.UserContentDataVO;
 import org.software.model.content.Content;
 import org.software.model.content.ContentD;
 import org.software.model.content.post.PostD;
+import org.software.model.content.post.PostE;
 import org.software.model.content.post.PostPage;
 import org.software.model.page.PageQuery;
 
@@ -18,16 +20,16 @@ import org.software.model.page.PageQuery;
 public interface ContentService extends IService<Content> {
 
     Long create(ContentD contentD);
-    PostPage getMyContent(PageQuery query, Long userId);
-    PostPage getAllFriendContent(PageQuery query, Long userId);
+    PostPage<PostE> getMyContent(PageQuery query, Long userId);
+    PostPage<ContentDetailDto> getAllContent(PageQuery query, Long userId);
 
     void updatePost(Content content);
 
     void deleteContent(Integer contentId);
 
-    PostD viewContent(Integer contentId);
+   ContentDetailDto viewContent(Integer contentId);
 
-    PostPage getAllContentForAdmin(PageQuery pageQuery, String status, String contentType,String startTime,String title);
+    PostPage<ContentDetailDto> getAllContentForAdmin(PageQuery pageQuery, String status, String contentType,String startTime,String title);
 
     void approveContent(Integer contentId);
 
