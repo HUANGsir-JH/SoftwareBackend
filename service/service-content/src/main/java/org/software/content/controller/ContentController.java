@@ -1,6 +1,7 @@
 package org.software.content.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import org.software.content.dto.ContentDetailDto;
 import org.software.content.dto.UserContentDataVO;
 import org.software.content.service.ContentService;
 import org.software.model.Response;
@@ -39,16 +40,19 @@ public class ContentController{
      */
     @PostMapping
     public Response create(@RequestBody ContentD contentD){
+        Long userId = StpUtil.getLoginIdAsLong();
+        // 调用 service 层创建帖子
         Long result = contentService.create(contentD);
         return Response.success(result);
     }
 
     /**
-     * 获取我的帖子
+     * 获取我的帖子/草稿
      * GET /content
      */
     @GetMapping
     public Response getMyContent(PageQuery pageQuery){
+        // TODO: 从token中获取userId
         Long userId = StpUtil.getLoginIdAsLong();
         // TODO: 实现分页查询我的帖子
         PostPage result = contentService.getMyContent(pageQuery, userId);
@@ -98,14 +102,39 @@ public class ContentController{
         if (contentId == null) {
             return Response.error();
         }
-        PostD post = contentService.viewContent(contentId);
-        return Response.success(post);
+       ContentDetailDto contentd= contentService.viewContent(contentId);
+        return Response.success(contentd);
+    }
+
+    /**
+     * 上传帖子图像
+     * POST /content/{contentId}/image
+     */
+    @PostMapping("/{contentId}/image")
+    public Response uploadImage(@PathVariable Integer contentId, @RequestParam("file") MultipartFile file){
+        // TODO: 验证帖子所有权
+        // TODO: 调用媒体服务上传图片
+        // TODO: 保存媒体文件关联信息
+        return Response.success();
+    }
+
+    /**
+     * 上传帖子视频
+     * POST /content/{contentId}/video
+     */
+    @PostMapping("/{contentId}/video")
+    public Response uploadVideo(@PathVariable Integer contentId, @RequestParam("file") MultipartFile file){
+        // TODO: 验证帖子所有权
+        // TODO: 调用媒体服务上传视频
+        // TODO: 保存媒体文件关联信息
+        return Response.success();
     }
 
     /**
      * 创建文字图像
      * POST /content/gen-image
      */
+    //暂未完成
     @PostMapping("/gen-image")
     public Response generateImage(@RequestBody String text){
         // TODO: 调用AI服务生成文字图像
@@ -113,14 +142,14 @@ public class ContentController{
     }
 
     /**
-     * 获取所有好友帖子
-     * GET /content/all/friend
+     * 获取所有帖子
+     * GET /content/all
      */
-    @GetMapping("/all/friend")
-    public Response getAllFriendContent(PageQuery pageQuery){
+    @GetMapping("/all")
+    public Response getAllContent(PageQuery pageQuery){
+        // TODO: 从token中获取userId
         Long userId = StpUtil.getLoginIdAsLong();
-        // TODO: 查询所有好友的帖子（分页）
-        PostPage result = contentService.getAllFriendContent(pageQuery, userId);
+        PostPage result = contentService.getAllContent(pageQuery, userId);
         return Response.success(result);
 
     }
@@ -160,7 +189,7 @@ public class ContentController{
      */
     @PutMapping("/b/{contentId}")
     public Response approveContent(@PathVariable Integer contentId){
-        // TODO: 验证管理员权限
+        // TODO: 验证管理员权限how？
         // TODO: 更新帖子状态为已审核
         /*User currentUser = userService.getCurrentUser(); // 你项目中已有
         if (currentUser == null || !"admin".equals(currentUser.getRole())) {
