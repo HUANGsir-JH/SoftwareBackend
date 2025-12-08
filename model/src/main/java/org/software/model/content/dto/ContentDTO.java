@@ -1,17 +1,14 @@
-package org.software.model.content;
+package org.software.model.content.dto;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ContentD {
+public class ContentDTO {
+    private Long contentId;
     // 内容类型
     private String contentType;
     // 标题
@@ -22,4 +19,7 @@ public class ContentD {
     private Integer isPublic;
     // 帖子的状态
     private String status;
+
+    private String[] medias;
+    private Long[] tags;
 }

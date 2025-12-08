@@ -1,9 +1,9 @@
 package org.software.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.software.model.content.Tag;
 import org.software.model.content.dto.TagDTO;
 import org.software.model.content.vo.TagVO;
-import org.software.model.content.tag.Tag;
 import org.software.model.exception.BusinessException;
 
 import java.util.List;

@@ -37,6 +37,10 @@ public enum HttpCodeEnum {
     // 202xxx 标签服务
     TAG_NAME_DUPLICATE(202001, "标签名称已存在"),
     INVALID_TAG(202002, "无效的标签"),
+    
+    // 203xxx 内容服务
+    CONTENT_NOT_FOUND(203001, "内容不存在"),
+    NO_PERMISSION(203002, "无权限操作该内容"),
 
     // 30xxxx 媒体服务
     // 301xxx 文件验证

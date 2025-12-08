@@ -1,27 +1,22 @@
-package org.software.model.content;
+package org.software.model.content.vo;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.software.model.content.tag.Tag;
-import java.util.List;
+import org.software.model.content.Tag;
+import org.software.model.media.ContentMedia;
+import org.software.model.media.Media;
+import org.software.model.user.UserV;
 
 import java.util.Date;
+import java.util.List;
 
-/**
- * 内容(Content)表实体类
- */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@TableName("content")
-public class Content {
+public class ContentDetailVO {
     // 内容id
-    @TableId(type = IdType.ASSIGN_ID)
     private Long contentId;
     // 上传者id
     private Long userId;
+    private UserV user;
     // 内容类型
     private String contentType;
     // 标题
@@ -41,26 +36,12 @@ public class Content {
     // 评论数（冗余字段）
     private Integer commentCount;
     // 上传时间
-    @TableField(fill = FieldFill.INSERT)
     private Date createdAt;
     // 更新时间
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updatedAt;
     // 软删除字段
-    @TableLogic(value = "null", delval = "now()")
     private Date deletedAt;
-    @TableField(exist = false)
-    private List<String> medias;
-    @TableField(exist = false)
-    private Tag[] tags;
-    @TableField(exist = false)
-    private Integer likeCount;
-    @TableField(exist = false)
-    private Integer favoriteCount;
-    @TableField(exist = false)
-    private Integer commentCount ;
 
-
-
+    private List<ContentMedia> medias;
+    private List<Tag> tags;
 }
-

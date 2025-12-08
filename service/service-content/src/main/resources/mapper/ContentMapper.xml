@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.software.content.mapper.ContentMapper">
+
+    <!-- 批量插入标签关联 -->
+    <insert id="batchInsertTags">
+        INSERT INTO content_tag (content_id, tag_id, created_at, updated_at)
+        VALUES
+        <foreach collection="tags" item="tagId" separator=",">
+            (#{contentId}, #{tagId}, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量插入媒体文件 -->
+    <insert id="batchInsertMedias">
+        INSERT INTO content_media (media_id, content_id, file_url, type, created_at, updated_at)
+        VALUES
+        <foreach collection="medias" item="media" separator=",">
+            (#{media.mediaId}, #{contentId}, #{media.fileUrl}, #{media.type}, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 删除指定内容的所有标签关联 -->
+    <delete id="deleteTagsByContentId">
+        UPDATE content_tag 
+        SET deleted_at = NOW()
+        WHERE content_id = #{contentId} AND deleted_at IS NULL
+    </delete>
+
+    <!-- 删除指定内容的所有媒体文件 -->
+    <delete id="deleteMediasByContentId">
+        UPDATE content_media 
+        SET deleted_at = NOW()
+        WHERE content_id = #{contentId} AND deleted_at IS NULL
+    </delete>
+
+    <!-- ResultMap定义 -->
+    <resultMap id="BaseResultMap" type="org.software.model.content.Content">
+        <id column="content_id" property="contentId" />
+        <result column="user_id" property="userId" />
+        <result column="content_type" property="contentType" />
+        <result column="title" property="title" />
+        <result column="description" property="description" />
+        <result column="is_public" property="isPublic" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted_at" property="deletedAt" />
+    </resultMap>
+
+</mapper>
