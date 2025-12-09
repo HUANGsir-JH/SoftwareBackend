@@ -4,11 +4,11 @@ import lombok.Data;
 
 @Data
 public class CommentDTO {
-    private Integer contentId;
-    private Integer parentCommentId;
-    private Integer rootCommentId;
-    private Integer toUserId;
+    private Long contentId;
+    private Long parentCommentId;
+    private Long rootCommentId;
+    private Long toUserId;
     private String content;
-    private Integer userId;
+    private Long userId;
 
 }

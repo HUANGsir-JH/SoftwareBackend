@@ -11,5 +11,5 @@ public class PageUserD {
     private String username;         // 用户名
     private String email;            // 邮箱
     private String sex;              // 性别
-    private Boolean isActive;        // 是否激活
+    private Integer isActive;        // 是否激活
 }

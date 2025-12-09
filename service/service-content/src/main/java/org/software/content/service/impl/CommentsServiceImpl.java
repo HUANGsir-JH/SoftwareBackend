@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> implements CommentsService {
 
     @Override
-    public Integer addComment(CommentDTO commentDTO) throws BusinessException {
+    public Long addComment(CommentDTO commentDTO) throws BusinessException {
         // 校验内容ID不为空
         if (commentDTO.getContentId() == null) {
             log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), commentDTO.getUserId());
@@ -62,7 +62,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
     }
 
     @Override
-    public List<CommentVO> getRootComments(Integer contentId) throws BusinessException {
+    public List<CommentVO> getRootComments(Long contentId) throws BusinessException {
         // 校验内容ID不为空
         if (contentId == null) {
             log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
@@ -95,7 +95,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
 
 
     @Override
-    public List<CommentVO> getChildComments(Integer parentCommentId) throws BusinessException {
+    public List<CommentVO> getChildComments(Long parentCommentId) throws BusinessException {
         // 校验父评论ID不为空
         if (parentCommentId == null) {
             log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
@@ -141,7 +141,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
 
 
     @Override
-    public List<CommentVO> getUnreadComments(Integer userId) throws BusinessException {
+    public List<CommentVO> getUnreadComments(Long userId) throws BusinessException {
         // 校验用户ID不为空
         if (userId == null) {
             log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
@@ -180,7 +180,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
 
 
     @Override
-    public Integer getUnreadCommentCount(Integer userId) throws BusinessException {
+    public Long getUnreadCommentCount(Long userId) throws BusinessException {
         // 校验用户ID不为空
         if (userId == null) {
             log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
@@ -193,7 +193,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
                 .eq(Comments::getIsRead, 0)
                 .isNull(Comments::getDeletedAt);
 
-        Integer count = Math.toIntExact(count(queryWrapper));
+        Long count = count(queryWrapper);
         log.info("统计未读评论数量 | userId: {} | count: {}", userId, count);
         return count;
     }

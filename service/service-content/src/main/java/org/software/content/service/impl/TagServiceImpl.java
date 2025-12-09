@@ -1,6 +1,8 @@
 package org.software.content.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.TagMapper;
@@ -10,11 +12,12 @@ import org.software.model.content.dto.TagDTO;
 import org.software.model.content.vo.TagVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.content.Tag;
+import org.software.model.page.PageQuery;
+import org.software.model.page.PageResult;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -91,20 +94,27 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     }
 
     @Override
-    public List<TagVO> getTagList() {
+    public PageResult getTagList(PageQuery query, String tagName, Integer isActive) {
+        Page<Tag> page = new Page<>(query.getPageNum(), query.getPageSize());
         LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+        if (tagName != null && !tagName.trim().isEmpty()) {
+            queryWrapper.eq(Tag::getTagName, tagName);
+        }
+        if (isActive != null) {
+            queryWrapper.eq(Tag::getIsActive, isActive);
+        }
         queryWrapper.isNull(Tag::getDeletedAt);
-        List<Tag> tagList = list(queryWrapper);
-        log.info("查询标签列表成功 | count: {}", tagList.size());
-        return tagList.stream().map(tag -> {
-            TagVO vo = new TagVO();
-            vo.setTagId(tag.getTagId());
-            vo.setTagName(tag.getTagName());
-            vo.setIsActive(tag.getIsActive());
-            vo.setCreatedAt(tag.getCreatedAt());
-            vo.setUpdatedAt(tag.getUpdatedAt());
-            return vo;
-        }).collect(Collectors.toList());
+        page = page(page, queryWrapper);
+
+        List<TagVO> tagVOS = page.getRecords().stream()
+                        .map(tag -> BeanUtil.toBean(tag, TagVO.class)).toList();
+        log.info("查询标签列表成功 | count: {}", page.getRecords().size());
+        return PageResult.builder()
+                .pageNum(query.getPageNum())
+                .pageSize(query.getPageSize())
+                .records(tagVOS)
+                .total(page.getTotal())
+                .build();
     }
 
     @Override

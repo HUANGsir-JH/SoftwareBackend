@@ -7,6 +7,6 @@ import java.util.List;
 
 @Data
 public class ContentTagDTO {
-    private Integer contentId;
-    private List<Integer> tagIds;
+    private Long contentId;
+    private List<Long> tagIds;
 }

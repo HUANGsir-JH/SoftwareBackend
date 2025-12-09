@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,6 +22,6 @@ public class ContentDTO {
     // 帖子的状态
     private String status;
 
-    private String[] medias;
-    private Long[] tags;
+    private List<String> medias;
+    private List<Long> tags;
 }

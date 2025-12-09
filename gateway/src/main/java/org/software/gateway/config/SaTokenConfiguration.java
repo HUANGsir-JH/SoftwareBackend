@@ -39,7 +39,7 @@ public class SaTokenConfiguration {
                 }
 
                 // 管理员接口权限控制
-                SaRouter.match("/user/b/**", r -> {
+                SaRouter.match("**/b/**", r -> {
                     Long userId = StpUtil.getLoginIdAsLong();
                     if (!Objects.equals(userId, UserConstants.ADMIN_USER_ID)) {
                         log.error("非管理员用户尝试访问管理员接口 | userId = {}", userId);

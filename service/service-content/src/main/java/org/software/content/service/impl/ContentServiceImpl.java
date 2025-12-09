@@ -5,6 +5,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.ContentMapper;
 import org.software.content.mapper.ContentMediaMapper;
 import org.software.content.mapper.ContentTagMapper;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
  * @since 2025-12-08 14:03:09
  */
 @Service
+@Slf4j
 public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> implements ContentService {
 
     @Autowired
@@ -61,6 +63,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long create(ContentDTO contentDTO) {
+        log.info("创建内容 | contentType: {} | title: {}", contentDTO.getContentType(), contentDTO.getTitle());
         // 转换DTO为实体
         Content content = BeanUtil.toBean(contentDTO, Content.class);
         
@@ -79,8 +82,8 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         }
         
         // 设置 cover_url（使用第一个媒体文件）
-        if (contentDTO.getMedias() != null && contentDTO.getMedias().length > 0) {
-            content.setCoverUrl(contentDTO.getMedias()[0]);
+        if (contentDTO.getMedias() != null && !contentDTO.getMedias().isEmpty()) {
+            content.setCoverUrl(contentDTO.getMedias().get(0));
         }
         
         // 初始化计数器
@@ -89,22 +92,23 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         content.setCommentCount(0);
         
         // 1. 先插入 content 主表（MP 会自动生成 contentId 和填充时间）
-        this.save(content);
+        save(content);
         
         Long contentId = content.getContentId();
         
         // 2. 批量插入标签关联
-        if (contentDTO.getTags() != null && contentDTO.getTags().length > 0) {
+        if (contentDTO.getTags() != null && !contentDTO.getTags().isEmpty()) {
             // 去重后再验证
-            Long[] uniqueTags = Arrays.stream(contentDTO.getTags())
+            List<Long> uniqueTags = contentDTO.getTags().stream()
                     .distinct()
-                    .toArray(Long[]::new);
+                    .toList();
 
             QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
-            tagQueryWrapper.in("tag_id", (Object[]) uniqueTags);
+            tagQueryWrapper.in("tag_id", uniqueTags);
             Long existCount = tagMapper.selectCount(tagQueryWrapper);
 
-            if (existCount != uniqueTags.length) {
+            if (existCount != uniqueTags.size()) {
+                log.warn("{} | tags: {}", HttpCodeEnum.INVALID_TAG.getMsg(), uniqueTags);
                 throw new BusinessException(HttpCodeEnum.INVALID_TAG);
             }
 
@@ -112,12 +116,12 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         }
         
         // 3. 批量插入媒体文件
-        if (contentDTO.getMedias() != null && contentDTO.getMedias().length > 0) {
+        if (contentDTO.getMedias() != null && !contentDTO.getMedias().isEmpty()) {
             List<ContentMedia> mediaList = new ArrayList<>();
-            for (int i = 0; i < contentDTO.getMedias().length; i++) {
+            for (int i = 0; i < contentDTO.getMedias().size(); i++) {
                 ContentMedia media = new ContentMedia();
                 media.setContentId((long) contentId.intValue());
-                media.setFileUrl(contentDTO.getMedias()[i]);
+                media.setFileUrl(contentDTO.getMedias().get(i));
                 // 根据 contentType 判断 media type
                 if ("video".equals(contentDTO.getContentType())) {
                     media.setType("video");
@@ -129,11 +133,14 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
             contentMapper.batchInsertMedias(contentId, mediaList);
         }
         
+        log.info("{} | contentId: {} | userId: {}", HttpCodeEnum.SUCCESS.getMsg(), contentId, content.getUserId());
         return contentId;
     }
 
     @Override
     public PageResult pageContent(PageQuery pageQuery, Long userId, String status) {
+        log.info("分页查询内容 | pageNum: {} | pageSize: {} | userId: {} | status: {}", 
+                pageQuery.getPageNum(), pageQuery.getPageSize(), userId, status);
         Page<Content> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
         QueryWrapper<Content> wrapper = new QueryWrapper<>();
         wrapper.eq("userId", userId)
@@ -159,6 +166,8 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
 
     @Override
     public PageResult getAllContent(PageQuery pageQuery, Long tag) {
+        log.info("获取所有内容 | pageNum: {} | pageSize: {} | tag: {}", 
+                pageQuery.getPageNum(), pageQuery.getPageSize(), tag);
         Page<Content> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
         
         List<Long> contentIds = null;
@@ -181,7 +190,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
             }
             
             contentIds = contentTags.stream()
-                    .map(ct -> ct.getContentId().longValue())
+                    .map(ContentTag::getContentId)
                     .collect(Collectors.toList());
         }
         
@@ -235,22 +244,27 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePost(ContentDTO contentDTO) {
+        log.info("更新内容 | contentId: {} | title: {}", contentDTO.getContentId(), contentDTO.getTitle());
         // 验证 contentId 是否存在
         if (contentDTO.getContentId() == null) {
+            log.warn("{} | contentId is null", HttpCodeEnum.PARAM_ERROR.getMsg());
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
         
         long contentId = contentDTO.getContentId();
         
         // 查询原有内容
-        Content existContent = this.getById(contentId);
+        Content existContent = getById(contentId);
         if (existContent == null) {
+            log.warn("{} | contentId: {}", HttpCodeEnum.CONTENT_NOT_FOUND.getMsg(), contentId);
             throw new BusinessException(HttpCodeEnum.CONTENT_NOT_FOUND);
         }
         
         // 验证权限：只能修改自己的内容
         Long currentUserId = StpUtil.getLoginIdAsLong();
         if (!existContent.getUserId().equals(currentUserId)) {
+            log.warn("{} | contentId: {} | currentUserId: {} | ownerId: {}", 
+                    HttpCodeEnum.NO_PERMISSION.getMsg(), contentId, currentUserId, existContent.getUserId());
             throw new BusinessException(HttpCodeEnum.NO_PERMISSION);
         }
         
@@ -271,8 +285,8 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         }
         
         // 更新 cover_url（使用第一个媒体文件）
-        if (contentDTO.getMedias() != null && contentDTO.getMedias().length > 0) {
-            content.setCoverUrl(contentDTO.getMedias()[0]);
+        if (contentDTO.getMedias() != null && !contentDTO.getMedias().isEmpty()) {
+            content.setCoverUrl(contentDTO.getMedias().get(0));
         } else {
             // 如果没有提供新的 medias，保持原有 coverUrl
             content.setCoverUrl(existContent.getCoverUrl());
@@ -284,7 +298,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         content.setCommentCount(existContent.getCommentCount());
         content.setCreatedAt(existContent.getCreatedAt());
         
-        this.updateById(content);
+        updateById(content);
         
         // 2. 处理标签关联
         if (contentDTO.getTags() != null) {
@@ -292,18 +306,19 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
             contentMapper.deleteTagsByContentId(contentId);
             
             // 插入新的标签关联
-            if (contentDTO.getTags().length > 0) {
+            if (!contentDTO.getTags().isEmpty()) {
                 // 去重后再验证
-                Long[] uniqueTags = Arrays.stream(contentDTO.getTags())
+                List<Long> uniqueTags = contentDTO.getTags().stream()
                         .distinct()
-                        .toArray(Long[]::new);
+                        .toList();
 
                 QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
-                tagQueryWrapper.in("tag_id", (Object[]) uniqueTags)
+                tagQueryWrapper.in("tag_id", uniqueTags)
                               .isNull("deleted_at");
                 Long existCount = tagMapper.selectCount(tagQueryWrapper);
 
-                if (existCount != uniqueTags.length) {
+                if (existCount != uniqueTags.size()) {
+                    log.warn("{} | contentId: {} | tags: {}", HttpCodeEnum.INVALID_TAG.getMsg(), contentId, uniqueTags);
                     throw new BusinessException(HttpCodeEnum.INVALID_TAG);
                 }
 
@@ -317,12 +332,12 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
             contentMapper.deleteMediasByContentId(contentId);
             
             // 插入新的媒体文件
-            if (contentDTO.getMedias().length > 0) {
+            if (!contentDTO.getMedias().isEmpty()) {
                 List<ContentMedia> mediaList = new ArrayList<>();
-                for (int i = 0; i < contentDTO.getMedias().length; i++) {
+                for (int i = 0; i < contentDTO.getMedias().size(); i++) {
                     ContentMedia media = new ContentMedia();
-                    media.setContentId((long) contentId);
-                    media.setFileUrl(contentDTO.getMedias()[i]);
+                    media.setContentId(contentId);
+                    media.setFileUrl(contentDTO.getMedias().get(i));
                     if ("video".equals(contentDTO.getContentType())) {
                         media.setType("video");
                     } else {
@@ -333,11 +348,14 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
                 contentMapper.batchInsertMedias(contentId, mediaList);
             }
         }
+        
+        log.info("{} | contentId: {} | userId: {}", HttpCodeEnum.SUCCESS.getMsg(), contentId, currentUserId);
     }
 
     @Override
     public ContentDetailVO viewContent(Long contentId) {
-        Content content = this.getById(contentId);
+        log.info("查看内容详情 | contentId: {}", contentId);
+        Content content = getById(contentId);
         ContentDetailVO contentDetailVO = BeanUtil.toBean(content, ContentDetailVO.class);
 
         Response response = userFeignClient.getUser(content.getUserId());
@@ -345,10 +363,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         UserV userV = BeanUtil.toBean(user, UserV.class);
         contentDetailVO.setUser(userV);
 
-        QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
-        tagQueryWrapper.eq("content_id", contentId)
-                .ne("is_active", TagConstants.ACTIVE);
-        List<Tag> tags = tagMapper.selectList(tagQueryWrapper);
+        List<Tag> tags = tagMapper.listByContentId(content.getContentId());
         contentDetailVO.setTags(tags);
 
         QueryWrapper<ContentMedia> mediaQueryWrapper = new QueryWrapper<>();
@@ -361,6 +376,8 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     
     @Override
     public PageResult getContentForAdmin(Integer pageNum, Integer pageSize, String title, String contentType, String startTime, String endTime, String status) {
+        log.info("管理员查询内容列表 | pageNum: {} | pageSize: {} | title: {} | contentType: {} | status: {}", 
+                pageNum, pageSize, title, contentType, status);
         Page<ContentDetailVO> page = new Page<>(pageNum, pageSize);
         List<ContentDetailVO> contentList = contentMapper.selectContentDetailPage(page,title,
                 contentType,startTime,endTime,status);
@@ -384,10 +401,13 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     @Transactional
     @Override
     public void remove(Long contentId) {
+        log.info("删除内容 | contentId: {}", contentId);
         removeById(contentId);
         
         contentMapper.deleteTagsByContentId(contentId);
         contentMapper.deleteMediasByContentId(contentId);
+        
+        log.info("{} | contentId: {}", HttpCodeEnum.SUCCESS.getMsg(), contentId);
     }
 }
 

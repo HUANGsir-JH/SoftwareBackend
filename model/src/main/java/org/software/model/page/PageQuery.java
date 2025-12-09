@@ -18,4 +18,9 @@ public class PageQuery {
     // 时间范围
     private LocalDateTime startTime; // 创建/更新开始时间
     private LocalDateTime endTime;   // 创建/更新结束时间
+
+    public PageQuery(Integer pageNum, Integer pageSize){
+        this.pageNum = pageNum;
+        this.pageSize = pageSize;
+    }
 }

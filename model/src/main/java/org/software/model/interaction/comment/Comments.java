@@ -18,17 +18,17 @@ import java.util.Date;
 public class Comments {
     // 评论Id
     @TableId
-    private Integer commentId;
+    private Long commentId;
     // 被评论的内容Id
-    private Integer contentId;
+    private Long contentId;
     // 评论者id
-    private Integer userId;
+    private Long userId;
     // 父评论id
-    private Integer parentCommentId;
+    private Long parentCommentId;
     // 根评论id
-    private Integer rootCommentId;
+    private Long rootCommentId;
     // 回复的评论的用户id
-    private Integer toUserId;
+    private Long toUserId;
     // 评论内容
     private String content;
     // 评论是否已读（0为未读，1为已读）

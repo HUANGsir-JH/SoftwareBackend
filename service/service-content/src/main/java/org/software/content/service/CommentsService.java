@@ -9,9 +9,9 @@ import org.software.model.interaction.comment.Comments;
 import java.util.List;
 
 public interface CommentsService extends IService<Comments> {
-    Integer addComment(CommentDTO commentDTO) throws BusinessException;
-    List<CommentVO> getRootComments(Integer contentId) throws BusinessException;
-    List<CommentVO> getChildComments(Integer parentCommentId) throws BusinessException;
-    List<CommentVO> getUnreadComments(Integer userId) throws BusinessException;
-    Integer getUnreadCommentCount(Integer userId) throws BusinessException;
+    Long addComment(CommentDTO commentDTO) throws BusinessException;
+    List<CommentVO> getRootComments(Long contentId) throws BusinessException;
+    List<CommentVO> getChildComments(Long parentCommentId) throws BusinessException;
+    List<CommentVO> getUnreadComments(Long userId) throws BusinessException;
+    Long getUnreadCommentCount(Long userId) throws BusinessException;
 }

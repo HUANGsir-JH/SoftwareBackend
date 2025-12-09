@@ -1,9 +1,6 @@
 package org.software.model.content;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,9 +16,9 @@ import java.util.Date;
 @TableName("content_tag")
 public class ContentTag {
     // 内容Id
-    private Integer contentId;
+    private Long contentId;
     // 标签Id
-    private Integer tagId;
+    private Long tagId;
     // 创建时间
     @TableField(fill = FieldFill.INSERT)
     private Date createdAt;

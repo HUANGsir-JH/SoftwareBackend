@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.checkerframework.checker.units.qual.C;
 import org.software.model.content.Content;
 import org.software.model.content.vo.ContentDetailVO;
 import org.software.model.media.ContentMedia;
@@ -18,11 +19,10 @@ import java.util.List;
  */
 @Mapper
 public interface ContentMapper extends BaseMapper<Content> {
-
     /**
      * 批量插入标签关联
      */
-    void batchInsertTags(@Param("contentId") Long contentId, @Param("tags") Long[] tags);
+    void batchInsertTags(@Param("contentId") Long contentId, @Param("tags") List<Long> tags);
 
     /**
      * 批量插入媒体文件

@@ -6,6 +6,7 @@ import org.software.model.Response;
 import org.software.model.content.dto.TagDTO;
 import org.software.model.content.vo.TagVO;
 import org.software.model.exception.BusinessException;
+import org.software.model.page.PageQuery;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,9 +34,8 @@ public class TagController {
     }
 
     @GetMapping
-    public Response getTagList() {
-        List<TagVO> tagList = tagService.getTagList();
-        return Response.success(tagList);
+    public Response getTagList(PageQuery query, String tagName, Integer isActive) {
+        return Response.success(tagService.getTagList(query, tagName, isActive));
     }
 
     @DeleteMapping("/{tagId}")

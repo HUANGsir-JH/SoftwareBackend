@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ContentLikeFavoriteDTO {
-    private Integer contentId;
-    private Integer userId;
+    private Long contentId;
+    private Long userId;
     private String type;
 }

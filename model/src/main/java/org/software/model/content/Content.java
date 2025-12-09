@@ -50,9 +50,9 @@ public class Content {
     @TableLogic(value = "null", delval = "now()")
     private Date deletedAt;
     @TableField(exist = false)
-    private String[] medias;
+    private List<String> medias;
     @TableField(exist = false)
-    private Long[] tags;
+    private List<Long> tags;
     
 
 }

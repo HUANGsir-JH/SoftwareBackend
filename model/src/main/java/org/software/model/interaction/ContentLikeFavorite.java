@@ -21,11 +21,11 @@ import java.util.Date;
 public class ContentLikeFavorite {
     // 点赞记录id
     @TableId
-    private Integer likeId;
+    private Long likeId;
     // 被点赞的内容id
-    private Integer contentId;
+    private Long contentId;
     // 点赞用户id
-    private Integer userId;
+    private Long userId;
     // 用户是否已读（0为未读，1为已读）
     private Integer isRead;
     // 类型（枚举，like：点赞）

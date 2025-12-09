@@ -27,7 +27,7 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
     @Autowired
     private ContentMapper contentMapper;
 
-    private void updateContentCounter(Integer contentId, String type, int delta) {
+    private void updateContentCounter(Long contentId, String type, int delta) {
 
         Content content = contentMapper.selectById(contentId);
         if (content == null) return;

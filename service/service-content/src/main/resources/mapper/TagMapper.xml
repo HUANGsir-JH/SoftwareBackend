@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.software.content.mapper.TagMapper">
+
+
+    <select id="listByContentId" resultType="org.software.model.content.Tag">
+        SELECT t.tag_id, t.tag_name, t.is_active, t.created_at, t.updated_at, t.deleted_at
+        FROM tag t
+        LEFT JOIN content_tag ct ON t.tag_id = ct.tag_id
+        WHERE ct.content_id = #{contentId}
+          AND t.is_active = 1
+          AND t.deleted_at IS NULL
+    </select>
+</mapper>
