@@ -16,7 +16,7 @@ import java.util.Date;
 public class Tag {
     // 标签id
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer tagId;
+    private Long tagId;
     // 标签名称
     private String tagName;
     // 是否启用（0为禁用，1为启用）

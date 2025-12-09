@@ -1,9 +1,11 @@
 package org.software.content.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.software.model.content.Content;
+import org.software.model.content.vo.ContentDetailVO;
 import org.software.model.media.ContentMedia;
 
 import java.util.List;
@@ -36,5 +38,8 @@ public interface ContentMapper extends BaseMapper<Content> {
      * 删除指定内容的所有媒体文件（软删除）
      */
     void deleteMediasByContentId(@Param("contentId") Long contentId);
+    
+    List<ContentDetailVO> selectContentDetailPage(Page<ContentDetailVO> page, String title, String contentType,
+                                                  String startTime, String endTime, String status);
 }
 

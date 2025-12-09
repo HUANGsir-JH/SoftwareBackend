@@ -4,12 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.ContentLikeFavoriteMapper;
+import org.software.content.mapper.ContentMapper;
 import org.software.content.service.ContentLikeFavoriteService;
 import org.software.model.constants.HttpCodeEnum;
+import org.software.model.content.Content;
 import org.software.model.content.dto.ContentLikeFavoriteDTO;
 import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.interaction.ContentLikeFavorite;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavoriteMapper, ContentLikeFavorite> implements ContentLikeFavoriteService {
 
+    @Autowired
+    private ContentMapper contentMapper;
 
     private void updateContentCounter(Integer contentId, String type, int delta) {
 
@@ -79,7 +84,7 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
             boolean result = updateById(exist);
             log.info("取消点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
                 exist.getLikeId(), dto.getUserId(), dto.getContentId(), result);
-            updateContentCounter(dto.getContentId(), type, +1);
+            updateContentCounter(dto.getContentId(), dto.getType(), +1);
             return result;
         } else {
             // 不存在：新增
@@ -93,7 +98,7 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
             boolean result = save(like);
             log.info("添加点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
                 like.getLikeId(), dto.getUserId(), dto.getContentId(), result);
-            updateContentCounter(dto.getContentId(), type, +1);
+            updateContentCounter(dto.getContentId(), dto.getType(), +1);
             return result;
         }
     }

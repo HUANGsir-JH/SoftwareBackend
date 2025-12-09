@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.software.model.content.tag.Tag;
+
 import java.util.List;
 
 import java.util.Date;
@@ -50,17 +50,10 @@ public class Content {
     @TableLogic(value = "null", delval = "now()")
     private Date deletedAt;
     @TableField(exist = false)
-    private List<String> medias;
+    private String[] medias;
     @TableField(exist = false)
-    private Tag[] tags;
-    @TableField(exist = false)
-    private Integer likeCount;
-    @TableField(exist = false)
-    private Integer favoriteCount;
-    @TableField(exist = false)
-    private Integer commentCount ;
-
-
+    private Long[] tags;
+    
 
 }
 

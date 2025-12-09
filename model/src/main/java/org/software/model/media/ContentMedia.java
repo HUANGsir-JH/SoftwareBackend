@@ -18,9 +18,9 @@ import java.util.Date;
 public class ContentMedia {
     // 媒体文件Id
     @TableId
-    private Integer mediaId;
+    private Long mediaId;
     // 所属内容id
-    private Integer contentId;
+    private Long contentId;
     // 文件存储路径
     private String fileUrl;
     // 媒体文件类型

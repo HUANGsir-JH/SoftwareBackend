@@ -116,7 +116,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
             List<ContentMedia> mediaList = new ArrayList<>();
             for (int i = 0; i < contentDTO.getMedias().length; i++) {
                 ContentMedia media = new ContentMedia();
-                media.setContentId(contentId.intValue());
+                media.setContentId((long) contentId.intValue());
                 media.setFileUrl(contentDTO.getMedias()[i]);
                 // 根据 contentType 判断 media type
                 if ("video".equals(contentDTO.getContentType())) {
@@ -133,7 +133,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     }
 
     @Override
-    public PageResult pageContent(PageQuery pageQuery, Integer userId, String status) {
+    public PageResult pageContent(PageQuery pageQuery, Long userId, String status) {
         Page<Content> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
         QueryWrapper<Content> wrapper = new QueryWrapper<>();
         wrapper.eq("userId", userId)
@@ -158,7 +158,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     }
 
     @Override
-    public PageResult getAllContent(PageQuery pageQuery, Integer tag) {
+    public PageResult getAllContent(PageQuery pageQuery, Long tag) {
         Page<Content> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
         
         List<Long> contentIds = null;
@@ -321,7 +321,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
                 List<ContentMedia> mediaList = new ArrayList<>();
                 for (int i = 0; i < contentDTO.getMedias().length; i++) {
                     ContentMedia media = new ContentMedia();
-                    media.setContentId((int) contentId);
+                    media.setContentId((long) contentId);
                     media.setFileUrl(contentDTO.getMedias()[i]);
                     if ("video".equals(contentDTO.getContentType())) {
                         media.setType("video");
@@ -336,7 +336,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     }
 
     @Override
-    public ContentDetailVO viewContent(Integer contentId) {
+    public ContentDetailVO viewContent(Long contentId) {
         Content content = this.getById(contentId);
         ContentDetailVO contentDetailVO = BeanUtil.toBean(content, ContentDetailVO.class);
 
@@ -357,6 +357,37 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         contentDetailVO.setMedias(medias);
 
         return contentDetailVO;
+    }
+    
+    @Override
+    public PageResult getContentForAdmin(Integer pageNum, Integer pageSize, String title, String contentType, String startTime, String endTime, String status) {
+        Page<ContentDetailVO> page = new Page<>(pageNum, pageSize);
+        List<ContentDetailVO> contentList = contentMapper.selectContentDetailPage(page,title,
+                contentType,startTime,endTime,status);
+        
+        // 使用feign获取用户信息并设置到VO中
+        for (ContentDetailVO contentDetailVO : contentList) {
+            Response response = userFeignClient.getUser(contentDetailVO.getUserId());
+            User user = (User) response.getData();
+            UserV userV = BeanUtil.toBean(user, UserV.class);
+            contentDetailVO.setUser(userV);
+        }
+        
+        return PageResult.builder()
+                .total(page.getTotal())
+                .records(contentList)
+                .pageNum(pageNum)
+                .pageSize(pageSize)
+                .build();
+    }
+    
+    @Transactional
+    @Override
+    public void remove(Long contentId) {
+        removeById(contentId);
+        
+        contentMapper.deleteTagsByContentId(contentId);
+        contentMapper.deleteMediasByContentId(contentId);
     }
 }
 

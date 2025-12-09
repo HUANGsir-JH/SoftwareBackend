@@ -1,6 +1,60 @@
 server:
   port: 7004
 
+sa-token:
+  # token 名称（同时也是 cookie 名称）
+  token-name: Authentication
+  # token 有效期（单位：秒） 默认30天，-1 代表永久有效
+  timeout: 2592000
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
+  active-timeout: -1
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  is-concurrent: false
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: false
+  jwt-secret-key: 202315SZU202315SZU202315SZU202315SZU202315SZU2023
+
+rocketmq:
+  name-server: ${SERVER}:9876
+  topic: SC_TOPIC
+  producer:
+    group: service-content-producer
+    send-message-timeout: 3000 # 消息发送超时时长，默认3s
+    retry-times-when-send-failed: 3 # 同步发送消息失败重试次数，默认2
+    retry-times-when-send-async-failed: 3 # 异步发送消息失败重试次数，默认2
+
 spring:
+
+
   profiles:
-      active: dev  # 或 test、prod
+    active: dev  # 或 test、prod
+
+  application:
+    name: service-content
+
+  datasource:
+    url: jdbc:mysql://${SERVER}:3306/se_content?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USERNAME}
+    password: ${PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      database: 0
+      host: ${SERVER}
+      port: 6379
+      password: ${PASSWORD}
+
+  cloud:
+    nacos:
+      server-addr: ${SERVER}:8848
+      config:
+        namespace: dev
+
+  config:
+    import:
+      - nacos:common.yaml?group=content
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

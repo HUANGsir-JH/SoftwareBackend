@@ -50,7 +50,7 @@ public class ContentController {
      * @return Response 包含帖子分页数据
      */
     @GetMapping
-    public Response getMyContent(PageQuery pageQuery, @RequestParam Integer userId, @RequestParam String status) {
+    public Response getMyContent(PageQuery pageQuery, @RequestParam Long userId, @RequestParam String status) {
         if (userId == null) {
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
@@ -82,11 +82,11 @@ public class ContentController {
      * @return Response 删除结果
      */
     @DeleteMapping("/{contentId}")
-    public Response deleteContent(@PathVariable Integer contentId) {
+    public Response deleteContent(@PathVariable Long contentId) {
         if (contentId == null) {
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
-        contentService.removeById(contentId);
+        contentService.remove(contentId);
         return Response.success();
     }
 
@@ -113,7 +113,7 @@ public class ContentController {
      * @return Response 包含帖子分页数据
      */
     @GetMapping("/all")
-    public Response getAllContent(PageQuery pageQuery, @RequestParam(required = false) Integer tag) {
+    public Response getAllContent(PageQuery pageQuery, @RequestParam(required = false) Long tag) {
         PageResult result = contentService.getAllContent(pageQuery, tag);
         return Response.success(result);
     }
@@ -126,7 +126,7 @@ public class ContentController {
      * @return Response 包含帖子详情
      */
     @GetMapping("/view")
-    public Response viewContent(@RequestParam Integer contentId) {
+    public Response viewContent(@RequestParam Long contentId) {
         if (contentId == null) {
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
@@ -135,32 +135,34 @@ public class ContentController {
     }
 
     // ========================= B端管理接口 ==============================
-/*
-    *//**
+    /**
      * 获取所有帖子-B端
      * GET /content/b
      * 
-     * @param pageQuery 分页参数
+     * @param pageNum 分页参数
+     * @param pageSize 分页参数
      * @param status 帖子状态筛选
      * @param contentType 内容类型筛选
      * @param startTime 创建时间筛选（开始）
      * @param endTime 创建时间筛选（结束）
      * @param title 标题筛选
      * @return Response 包含帖子分页数据
-     *//*
+     */
     @GetMapping("/b")
     public Response getAllContentForAdmin(
-            PageQuery pageQuery,
+            @RequestParam(required = true) Integer pageNum,
+            @RequestParam(required = true) Integer pageSize,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String contentType,
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime,
             @RequestParam(required = false) String title) {
-        PostPage page = contentService.getAllContentForAdmin(pageQuery, status, contentType, startTime, title);
+        PageResult page = contentService.getContentForAdmin(pageNum, pageSize, status, contentType, startTime, endTime, title);
         return Response.success(page);
     }
-
-    *//**
+    
+/*
+    /**
      * 通过审核/解封-B端
      * PUT /content/b/{contentId}
      * 

@@ -42,8 +42,8 @@ public class CommentController {
         List<CommentVO> unreadComments = commentsService.getUnreadComments(commentId);
         return Response.success(unreadComments);
     }
-    @GetMapping("unread")
-    public Response getUnreadCommentsByParentId(@RequestParam Integer parentCommentId){
+    @GetMapping("/unread/count")
+    public Response getUnreadCommentsCount(@RequestParam Integer parentCommentId){
         Integer count=commentsService.getUnreadCommentCount(parentCommentId);
         return Response.success(count);
     }

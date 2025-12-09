@@ -18,12 +18,18 @@ public interface ContentService extends IService<Content> {
 
     Long create(ContentDTO contentDTO);
 
-    PageResult pageContent(PageQuery pageQuery, Integer userId, String status);
+    PageResult pageContent(PageQuery pageQuery, Long userId, String status);
 
-    PageResult getAllContent(PageQuery pageQuery, Integer tag);
+    PageResult getAllContent(PageQuery pageQuery, Long tag);
 
     void updatePost(ContentDTO content);
 
-    ContentDetailVO viewContent(Integer contentId);
+    ContentDetailVO viewContent(Long contentId);
+    
+    PageResult getContentForAdmin(Integer pageNum, Integer pageSize, String title,
+                                  String contentType,
+                                  String startTime, String endTime, String status);
+    
+    void remove(Long contentId);
 }
 

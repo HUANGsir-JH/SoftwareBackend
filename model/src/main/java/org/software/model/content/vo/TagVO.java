@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Data
 public class TagVO {
-    private Integer tagId;
+    private Long tagId;
     private String tagName;
     private Integer isActive;
     private Date createdAt;
