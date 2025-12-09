@@ -143,13 +143,16 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
                 pageQuery.getPageNum(), pageQuery.getPageSize(), userId, status);
         Page<Content> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
         QueryWrapper<Content> wrapper = new QueryWrapper<>();
-        wrapper.eq("userId", userId)
+        wrapper.eq("user_id", userId)
                 .eq("status", status == null ? ContentConstants.STATUS_PUBLISH : ContentConstants.STATUS_DRAFT);
         page = contentMapper.selectPage(page, wrapper);
 
         List<ContentVO> contentVOS = page.getRecords().stream()
                 .map(content -> {
                     ContentVO vo = BeanUtil.toBean(content, ContentVO.class);
+                    if(vo.getFirstMedia() == null) {
+                        vo.setFirstMedia(new FirstMedia());
+                    }
                     vo.getFirstMedia().setType(content.getContentType());
                     vo.getFirstMedia().setFileUrl(content.getCoverUrl());
 

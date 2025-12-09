@@ -50,9 +50,12 @@ public class ContentController {
      * @return Response 包含帖子分页数据
      */
     @GetMapping
-    public Response getMyContent(PageQuery pageQuery, @RequestParam Long userId, @RequestParam String status) {
+    public Response getMyContent(PageQuery pageQuery, @RequestParam Long userId, @RequestParam(required = false) String status) {
         if (userId == null) {
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
+        }
+        if(status == null || status.isEmpty()) {
+            status = null;
         }
         PageResult pageResult = contentService.pageContent(pageQuery, userId, status);
         return Response.success(pageResult);
