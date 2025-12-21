@@ -18,7 +18,7 @@ import java.util.Date;
 @TableName("content")
 public class Content {
     // 内容id
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long contentId;
     // 上传者id
     private Long userId;

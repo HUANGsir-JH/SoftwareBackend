@@ -1,5 +1,6 @@
 package org.software.model.interaction;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.Date;
 //@TableName("content_like_favorite")
 public class ContentLikeFavorite {
     // 点赞记录id
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long likeId;
     // 被点赞的内容id
     private Long contentId;

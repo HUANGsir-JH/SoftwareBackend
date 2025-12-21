@@ -20,7 +20,7 @@ import java.util.Date;
 @Builder
 public class PrivateConversations {
     // 私聊会话id
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long conversationId;
     // 用户1id
     private Long user1Id;

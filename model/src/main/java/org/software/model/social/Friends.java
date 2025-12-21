@@ -18,7 +18,7 @@ import java.util.Date;
 @Builder
 public class Friends {
     // 好友关系id
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long friendshipId;
     // 发送加好友请求的用户id
     private Long userId;

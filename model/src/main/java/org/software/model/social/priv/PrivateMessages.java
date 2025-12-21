@@ -17,7 +17,7 @@ import java.util.Date;
 @Builder
 public class PrivateMessages {
     // 消息id
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long messageId;
     // 所属私人会话id
     private Long conversationId;

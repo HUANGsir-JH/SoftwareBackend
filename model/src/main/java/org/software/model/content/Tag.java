@@ -15,7 +15,7 @@ import java.util.Date;
 @TableName("tag")
 public class Tag {
     // 标签id
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long tagId;
     // 标签名称
     private String tagName;

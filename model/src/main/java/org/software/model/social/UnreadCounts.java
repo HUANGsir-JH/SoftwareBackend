@@ -21,7 +21,7 @@ import java.util.Date;
 @Builder
 public class UnreadCounts {
 //计数记录id
-    @TableId(type = IdType.ASSIGN_ID)
+@TableId(type = IdType.AUTO)
     private Long countId;
 //当前记录所属用户
     private Long userId;

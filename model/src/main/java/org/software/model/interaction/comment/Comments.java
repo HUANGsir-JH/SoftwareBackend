@@ -1,5 +1,6 @@
 package org.software.model.interaction.comment;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.Date;
 @TableName("comments")
 public class Comments {
     // 评论Id
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long commentId;
     // 被评论的内容Id
     private Long contentId;

@@ -21,7 +21,7 @@ import java.util.Date;
 @Builder
 public class User {
     //用户唯一Id
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long userId;
     //用户名（登录用）
     private String username;

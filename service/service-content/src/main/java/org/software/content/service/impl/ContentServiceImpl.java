@@ -39,6 +39,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import cn.hutool.json.JSONUtil;
+
 /**
  * 内容主表(Content)表服务实现类
  *
@@ -230,7 +232,14 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
                     
                     // 关联查询用户信息（需要通过 OpenFeign 或本地查询）
                     Response response = userFeignClient.getUser(content.getUserId());
-                    User user = (User) response.getData();
+                    // 处理Feign客户端返回的LinkedHashMap类型数据
+                    Object userData = response.getData();
+                    User user;
+                    if (userData instanceof String) {
+                        user = JSONUtil.toBean((String) userData, User.class);
+                    } else {
+                        user = BeanUtil.toBean(userData, User.class);
+                    }
                     vo.setUser(BeanUtil.toBean(user, UserV.class));
                     
                     return vo;
@@ -362,7 +371,14 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         ContentDetailVO contentDetailVO = BeanUtil.toBean(content, ContentDetailVO.class);
 
         Response response = userFeignClient.getUser(content.getUserId());
-        User user = (User) response.getData();
+        // 处理Feign客户端返回的LinkedHashMap类型数据
+        Object userData = response.getData();
+        User user;
+        if (userData instanceof String) {
+            user = JSONUtil.toBean((String) userData, User.class);
+        } else {
+            user = BeanUtil.toBean(userData, User.class);
+        }
         UserV userV = BeanUtil.toBean(user, UserV.class);
         contentDetailVO.setUser(userV);
 
@@ -388,7 +404,14 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         // 使用feign获取用户信息并设置到VO中
         for (ContentDetailVO contentDetailVO : contentList) {
             Response response = userFeignClient.getUser(contentDetailVO.getUserId());
-            User user = (User) response.getData();
+            // 处理Feign客户端返回的LinkedHashMap类型数据
+            Object userData = response.getData();
+            User user;
+            if (userData instanceof String) {
+                user = JSONUtil.toBean((String) userData, User.class);
+            } else {
+                user = BeanUtil.toBean(userData, User.class);
+            }
             UserV userV = BeanUtil.toBean(user, UserV.class);
             contentDetailVO.setUser(userV);
         }
@@ -413,4 +436,3 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         log.info("{} | contentId: {}", HttpCodeEnum.SUCCESS.getMsg(), contentId);
     }
 }
-

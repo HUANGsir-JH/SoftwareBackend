@@ -1,5 +1,6 @@
 package org.software.model.media;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.Date;
 @TableName("content_media")
 public class ContentMedia {
     // 媒体文件Id
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long mediaId;
     // 所属内容id
     private Long contentId;

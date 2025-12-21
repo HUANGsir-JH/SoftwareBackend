@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient("service-notification")
 public interface NotificationFeignClient {
 
-    @PostMapping("message/addConv")
+    @PostMapping("/message/addConv")
     Response addConv(@RequestBody Long friendId);
 }
