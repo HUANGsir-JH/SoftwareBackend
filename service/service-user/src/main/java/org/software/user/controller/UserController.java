@@ -45,18 +45,6 @@ public class UserController {
         return Response.success();
     }
 
-    /*@PostMapping("/avatar")
-    public Response uploadAvatar(@RequestBody UploadD uploadD) {
-        String url = userService.updateAvatar(uploadD);
-        return Response.success(url);
-    }
-
-    @GetMapping("/backImage")
-    public Response uploadBackImage(@RequestBody UploadD uploadD) {
-        String url = userService.updateBG(uploadD);
-        return Response.success(url);
-    }*/
-
     @DeleteMapping
     public Response deleteUser(){
         Long userId = StpUtil.getLoginIdAsLong();

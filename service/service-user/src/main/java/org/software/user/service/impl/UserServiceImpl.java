@@ -171,7 +171,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", registerRequest.getEmail());
 
-
         Long cnt = userMapper.selectCount(queryWrapper);
         if (cnt >= 1){
             log.warn("{} | email: {}", HttpCodeEnum.REGISTERED.getMsg(), registerRequest.getEmail());

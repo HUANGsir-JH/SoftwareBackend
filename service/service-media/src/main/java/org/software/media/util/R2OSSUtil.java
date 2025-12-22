@@ -45,8 +45,8 @@ public class R2OSSUtil {
             "image/jpeg",
             "image/png",
             "image/gif",
-            "image/webp"
-            // 排除 svg（可能含脚本），如需可加回
+            "image/webp",
+            "image/svg+xml"
     );
 
     private static final Set<String> VIDEO_TYPES = Set.of(
@@ -73,6 +73,7 @@ public class R2OSSUtil {
             Map.entry("image/png", "png"),
             Map.entry("image/gif", "gif"),
             Map.entry("image/webp", "webp"),
+            Map.entry("image/svg+xml", "svg"),
             Map.entry("video/mp4", "mp4"),
             Map.entry("video/quicktime", "mov"),
             Map.entry("video/x-matroska", "mkv"),
@@ -80,6 +81,7 @@ public class R2OSSUtil {
             Map.entry("application/pdf", "pdf"),
             Map.entry("text/plain", "txt"),
             Map.entry("text/csv", "csv")
+
             // 可继续扩展
     );
 
@@ -157,7 +159,7 @@ public class R2OSSUtil {
 
     // ========== 场景1：用户头像/背景图片（仅图片） ==========
     public static String generateAvatarObjectKey(UploadD uploadD, Long userId) {
-        validate(uploadD, IMAGE_TYPES, AVATAR_MAX_SIZE, "用户头像/背景图片");
+        // validate(uploadD, IMAGE_TYPES, AVATAR_MAX_SIZE, "用户头像/背景图片");
 
         String CT = Objects.requireNonNull(uploadD.getContentType()).toLowerCase();
         String ext = MIME_TO_EXT.getOrDefault(CT, "jpg"); // 默认 jpg
@@ -178,7 +180,7 @@ public class R2OSSUtil {
         Set<String> allowed = new HashSet<>(IMAGE_TYPES);
         allowed.addAll(VIDEO_TYPES);
         allowed.addAll(IMAGE_TYPES);
-        validate(uploadD, allowed, FEED_MEDIA_MAX_SIZE, "用户动态");
+        // validate(uploadD, allowed, FEED_MEDIA_MAX_SIZE, "用户动态");
 
         String contentType = Objects.requireNonNull(uploadD.getContentType()).toLowerCase();
         String ext = MIME_TO_EXT.getOrDefault(contentType, "bin");
