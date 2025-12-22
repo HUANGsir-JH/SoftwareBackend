@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 public interface ContentLikeFavoriteService extends IService<ContentLikeFavorite> {
-    boolean addOrCancelLike(ContentLikeFavoriteDTO dto) throws BusinessException;
+    boolean addOrCancelLike(Integer contentId, String type) throws BusinessException;
     List<ContentLikeFavoriteVO> getLikeFavoriteRecords(Integer pageNum,
                                                        Integer pageSize,
                                                        String type) throws BusinessException;
@@ -18,4 +18,6 @@ public interface ContentLikeFavoriteService extends IService<ContentLikeFavorite
     List<ContentLikeFavoriteVO> getUnreadLikeFavorite(Integer pageNum,
                                                       Integer pageSize,
                                                       String type) throws BusinessException;
+
+
 }
