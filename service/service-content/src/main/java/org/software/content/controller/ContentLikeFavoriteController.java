@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/content-like-favorite")
+//@RequestMapping("/content-like-favorite")
 public class ContentLikeFavoriteController {
 
     private final ContentLikeFavoriteService likeFavoriteService;
@@ -19,14 +19,14 @@ public class ContentLikeFavoriteController {
     }
 
     // 新增或取消点赞/收藏
-    @PostMapping
+    @PostMapping("/content-like-favorite")
     public Response addOrCancelLike(@RequestBody ContentLikeFavoriteDTO dto) {
         boolean result = likeFavoriteService.addOrCancelLike(dto);
         return Response.success(result);
     }
 
     // 获取用户的点赞/收藏记录
-    @GetMapping
+    @GetMapping("/content-like-favorite")
     public Response getLikeFavoriteRecords(
             @RequestParam Integer userId,
             @RequestParam String type) {
@@ -35,7 +35,7 @@ public class ContentLikeFavoriteController {
     }
 
     // 标记所有记录为已读
-    @PutMapping
+    @PutMapping("/content-like-favorite")
     public Response readAll(
             @RequestParam Integer userId,
             @RequestParam String type) {
@@ -44,7 +44,7 @@ public class ContentLikeFavoriteController {
     }
 
     // 获取未读的点赞/收藏记录
-    @GetMapping("/unread")
+    @GetMapping("/content-like/unread")
     public Response getUnreadLikeFavorite(
             @RequestParam Integer userId,
             @RequestParam String type) {
