@@ -1,6 +1,8 @@
 package org.software.content.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.ContentLikeFavoriteMapper;
@@ -15,6 +17,7 @@ import org.software.model.interaction.ContentLikeFavorite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Date;
 import java.util.List;
@@ -104,60 +107,55 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
     }
 
     @Override
-    public List<ContentLikeFavoriteVO> getLikeFavoriteRecords(Integer userId, String type) throws BusinessException {
-        // 校验用户ID不为空
-        if (userId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+    public List<ContentLikeFavoriteVO> getLikeFavoriteRecords(Integer pageNum,
+                                                              Integer pageSize,
+                                                              String type) throws BusinessException {
+        Integer userId= StpUtil.getLoginIdAsInt();
+
 
         // 校验类型不为空
         if (type == null || type.trim().isEmpty()) {
             log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
+        Page<ContentLikeFavorite> page = new Page<>(pageNum, pageSize);
 
         // 查询记录
         LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ContentLikeFavorite::getUserId, userId)
                 .eq(ContentLikeFavorite::getType, type)
                 .isNull(ContentLikeFavorite::getDeletedAt);
-        List<ContentLikeFavorite> list = list(queryWrapper);
-        
-        log.info("查询点赞收藏记录 | userId: {} | type: {} | count: {}", userId, type, list.size());
+        Page<ContentLikeFavorite> resultPage = page(page, queryWrapper);
 
-        // 转换为VO
-        return list.stream().map(like -> {
-            ContentLikeFavoriteVO vo = new ContentLikeFavoriteVO();
-            vo.setLikeId(like.getLikeId());
-            vo.setContentId(like.getContentId());
-            vo.setUserId(like.getUserId());
-            vo.setIsRead(like.getIsRead());
-            vo.setType(like.getType());
-            vo.setCreatedAt(like.getCreatedAt());
-            return vo;
-        }).collect(Collectors.toList());
+        log.info("分页查询点赞收藏 | userId: {} | type: {} | page: {} | size: {} | total: {}",
+                userId, type, pageNum, pageSize, resultPage.getTotal());
+
+        return resultPage.getRecords()
+                .stream()
+                .map(like -> {
+                    ContentLikeFavoriteVO vo = new ContentLikeFavoriteVO();
+                    vo.setLikeId(like.getLikeId());
+                    vo.setContentId(like.getContentId());
+                    vo.setUserId(like.getUserId());
+                    vo.setIsRead(like.getIsRead());
+                    vo.setType(like.getType());
+                    vo.setCreatedAt(like.getCreatedAt());
+                    return vo;
+                })
+                .collect(Collectors.toList());
+
     }
 
     @Override
     @Transactional
-    public boolean readAll(Integer userId, String type) throws BusinessException {
-        // 校验用户ID不为空
-        if (userId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+    public boolean readAll() throws BusinessException {
 
-        // 校验类型不为空
-        if (type == null || type.trim().isEmpty()) {
-            log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+        Integer userId= StpUtil.getLoginIdAsInt();
+
 
         // 查询未读记录并标记为已读
         LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ContentLikeFavorite::getUserId, userId)
-                .eq(ContentLikeFavorite::getType, type)
                 .eq(ContentLikeFavorite::getIsRead, 0)
                 .isNull(ContentLikeFavorite::getDeletedAt);
         List<ContentLikeFavorite> list = list(queryWrapper);
@@ -167,24 +165,24 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
             like.setUpdatedAt(new Date());
         });
         boolean result = updateBatchById(list);
-        log.info("标记全部已读 | userId: {} | type: {} | count: {} | result: {}", 
-            userId, type, list.size(), result);
+        log.info("标记全部已读 | userId: {} | count: {} | result: {}",
+            userId,  list.size(), result);
         return result;
     }
 
     @Override
-    public List<ContentLikeFavoriteVO> getUnreadLikeFavorite(Integer userId, String type) throws BusinessException {
-        // 校验用户ID不为空
-        if (userId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+    public List<ContentLikeFavoriteVO> getUnreadLikeFavorite(Integer pageNum,
+                                                             Integer pageSize,
+                                                             String type) throws BusinessException {
+        Integer userId= StpUtil.getLoginIdAsInt();
+
 
         // 校验类型不为空
         if (type == null || type.trim().isEmpty()) {
             log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
+        Page<ContentLikeFavorite> page = new Page<>(pageNum, pageSize);
 
         // 查询未读记录
         LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
@@ -192,20 +190,23 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
                 .eq(ContentLikeFavorite::getType, type)
                 .eq(ContentLikeFavorite::getIsRead, 0)
                 .isNull(ContentLikeFavorite::getDeletedAt);
-        List<ContentLikeFavorite> list = list(queryWrapper);
-        
-        log.info("查询未读点赞收藏 | userId: {} | type: {} | count: {}", userId, type, list.size());
+        Page<ContentLikeFavorite> resultPage = page(page, queryWrapper);
 
-        // 转换为VO
-        return list.stream().map(like -> {
-            ContentLikeFavoriteVO vo = new ContentLikeFavoriteVO();
-            vo.setLikeId(like.getLikeId());
-            vo.setContentId(like.getContentId());
-            vo.setUserId(like.getUserId());
-            vo.setIsRead(like.getIsRead());
-            vo.setType(like.getType());
-            vo.setCreatedAt(like.getCreatedAt());
-            return vo;
-        }).collect(Collectors.toList());
+        log.info("分页查询未读点赞收藏 | userId: {} | type: {} | total: {}",
+                userId, type, resultPage.getTotal());
+
+        return resultPage.getRecords()
+                .stream()
+                .map(like -> {
+                    ContentLikeFavoriteVO vo = new ContentLikeFavoriteVO();
+                    vo.setLikeId(like.getLikeId());
+                    vo.setContentId(like.getContentId());
+                    vo.setUserId(like.getUserId());
+                    vo.setIsRead(like.getIsRead());
+                    vo.setType(like.getType());
+                    vo.setCreatedAt(like.getCreatedAt());
+                    return vo;
+                })
+                .collect(Collectors.toList());
     }
 }
