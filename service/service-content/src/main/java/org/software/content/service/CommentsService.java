@@ -12,6 +12,9 @@ public interface CommentsService extends IService<Comments> {
     Long addComment(CommentDTO commentDTO) throws BusinessException;
     List<CommentVO> getRootComments(Long contentId) throws BusinessException;
     List<CommentVO> getChildComments(Long parentCommentId) throws BusinessException;
-    List<CommentVO> getUnreadComments(Long userId) throws BusinessException;
-    Long getUnreadCommentCount(Long userId) throws BusinessException;
+    List<CommentVO> getUnreadComments() throws BusinessException;
+    Long getUnreadCommentCount() throws BusinessException;
+
+    void deleteComments(Long commentId);
+
 }
