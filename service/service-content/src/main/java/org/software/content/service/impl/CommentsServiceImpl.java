@@ -1,5 +1,6 @@
 package org.software.content.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -141,12 +142,9 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
 
 
     @Override
-    public List<CommentVO> getUnreadComments(Long userId) throws BusinessException {
-        // 校验用户ID不为空
-        if (userId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+    public List<CommentVO> getUnreadComments() throws BusinessException {
+        Long userId= StpUtil.getLoginIdAsLong();
+
 
         // 查询未读评论（未删除 + 接收方是当前用户 + 未读）
         LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
@@ -180,12 +178,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
 
 
     @Override
-    public Long getUnreadCommentCount(Long userId) throws BusinessException {
-        // 校验用户ID不为空
-        if (userId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+    public Long getUnreadCommentCount() throws BusinessException {
+        Long userId= StpUtil.getLoginIdAsLong();
 
         // 统计未读评论数量（条件同getUnreadComments）
         LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
@@ -197,4 +191,47 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
         log.info("统计未读评论数量 | userId: {} | count: {}", userId, count);
         return count;
     }
+
+    @Override
+    public void deleteComments(Long commentId) throws BusinessException {
+        //参数校验
+        if (commentId == null) {
+            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
+            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
+        }
+
+        // 查询评论是否存在
+        Comments comment = getById(commentId);
+        if (comment == null || comment.getDeletedAt() != null) {
+            log.warn("{} | commentId: {}", HttpCodeEnum.COMMENT_NOT_FOUND.getMsg(), commentId);
+            throw new BusinessException(HttpCodeEnum.COMMENT_NOT_FOUND);
+        }
+
+        Date now = new Date();
+
+        // 判断是否是根评论
+        if (comment.getParentCommentId() == 0) {
+            // 根评论
+            LambdaQueryWrapper<Comments> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Comments::getRootCommentId, commentId)
+                    .or()
+                    .eq(Comments::getCommentId, commentId);
+
+            Comments updateEntity = new Comments();
+            updateEntity.setDeletedAt(now);
+            updateEntity.setUpdatedAt(now);
+
+            update(updateEntity, wrapper);
+
+            log.info("删除根评论及其子评论 | rootCommentId: {}", commentId);
+        } else {
+            // 子评论
+            comment.setDeletedAt(now);
+            comment.setUpdatedAt(now);
+            updateById(comment);
+
+            log.info("删除子评论 | commentId: {}", commentId);
+        }
+    }
+
 }
