@@ -25,30 +25,36 @@ public class ContentLikeFavoriteController {
         return Response.success(result);
     }
 
-    // 获取用户的点赞/收藏记录
+    // 获取用户的分页点赞/收藏记录
     @GetMapping("/content-like-favorite")
     public Response getLikeFavoriteRecords(
-            @RequestParam Integer userId,
+            @RequestParam Integer pageNum,
+            @RequestParam Integer pageSize,
             @RequestParam String type) {
-        List<ContentLikeFavoriteVO> records = likeFavoriteService.getLikeFavoriteRecords(userId, type);
-        return Response.success(records);
+
+        return Response.success(
+                likeFavoriteService.getLikeFavoriteRecords(pageNum, pageSize, type)
+        );
     }
+
 
     // 标记所有记录为已读
     @PutMapping("/content-like-favorite")
-    public Response readAll(
-            @RequestParam Integer userId,
-            @RequestParam String type) {
-        boolean result = likeFavoriteService.readAll(userId, type);
+    public Response readAll() {
+        boolean result = likeFavoriteService.readAll();
         return Response.success(result);
     }
 
-    // 获取未读的点赞/收藏记录
-    @GetMapping("/content-like/unread")
+    // 获取未读的分页点赞/收藏记录
+    @GetMapping("/content-like-favorite/unread")
     public Response getUnreadLikeFavorite(
-            @RequestParam Integer userId,
+            @RequestParam Integer pageNum,
+            @RequestParam Integer pageSize,
             @RequestParam String type) {
-        List<ContentLikeFavoriteVO> unreadRecords = likeFavoriteService.getUnreadLikeFavorite(userId, type);
-        return Response.success(unreadRecords);
+
+        return Response.success(
+                likeFavoriteService.getUnreadLikeFavorite(pageNum, pageSize, type)
+        );
     }
+
 }
