@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping
+//@RequestMapping("/content-like-favorite")
 public class ContentLikeFavoriteController {
 
     private final ContentLikeFavoriteService likeFavoriteService;
@@ -20,8 +20,8 @@ public class ContentLikeFavoriteController {
 
     // 新增或取消点赞/收藏
     @PostMapping("/content-like-favorite")
-    public Response addOrCancelLike(@RequestBody ContentLikeFavoriteDTO dto) {
-        boolean result = likeFavoriteService.addOrCancelLike(dto);
+    public Response addOrCancelLike( @RequestParam Integer contentId, @RequestParam String type) {
+        boolean result = likeFavoriteService.addOrCancelLike(contentId,type);
         return Response.success(result);
     }
 
