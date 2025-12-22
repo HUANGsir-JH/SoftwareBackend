@@ -46,38 +46,30 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
     
     @Override
     @Transactional
-    public boolean addOrCancelLike(ContentLikeFavoriteDTO dto) throws BusinessException {
+    public boolean addOrCancelLike(Integer contentId, String type) throws BusinessException {
+        Integer userId=StpUtil.getLoginIdAsInt();
         // 校验内容ID不为空
-        if (dto.getContentId() == null) {
-            log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), dto.getUserId());
+        if (contentId == null) {
+            log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
-        // 校验用户ID不为空
-        if (dto.getUserId() == null) {
-            log.warn("{} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), dto.getContentId());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+
 
         // 校验操作类型不为空
-        if (dto.getType() == null || dto.getType().trim().isEmpty()) {
-            log.warn("{} | userId: {} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), 
-                dto.getUserId(), dto.getContentId());
+        if (type == null) {
+            log.warn("{} | userId: {} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(),
+                userId, contentId);
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
-        // 校验操作类型有效
-        if (!"like".equals(dto.getType())) {
-            log.warn("{} | type: {} | userId: {} | contentId: {}", HttpCodeEnum.INVALID_TYPE.getMsg(), 
-                dto.getType(), dto.getUserId(), dto.getContentId());
-            throw new BusinessException(HttpCodeEnum.INVALID_TYPE);
-        }
+
 
         // 检查是否已存在该记录
         LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ContentLikeFavorite::getContentId, dto.getContentId())
-                .eq(ContentLikeFavorite::getUserId, dto.getUserId())
-                .eq(ContentLikeFavorite::getType, dto.getType())
+        queryWrapper.eq(ContentLikeFavorite::getContentId, contentId)
+                .eq(ContentLikeFavorite::getUserId, userId)
+                .eq(ContentLikeFavorite::getType, type)
                 .isNull(ContentLikeFavorite::getDeletedAt);
         ContentLikeFavorite exist = getOne(queryWrapper);
 
@@ -86,22 +78,22 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
             exist.setDeletedAt(new Date());
             boolean result = updateById(exist);
             log.info("取消点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
-                exist.getLikeId(), dto.getUserId(), dto.getContentId(), result);
-            updateContentCounter(dto.getContentId(), dto.getType(), +1);
+                exist.getLikeId(), userId, contentId, result);
+            updateContentCounter(Long.valueOf(contentId), type, +1);
             return result;
         } else {
             // 不存在：新增
             ContentLikeFavorite like = new ContentLikeFavorite();
-            like.setContentId(dto.getContentId());
-            like.setUserId(dto.getUserId());
-            like.setType(dto.getType());
+            like.setContentId(Long.valueOf(contentId));
+            like.setUserId(Long.valueOf(userId));
+            like.setType(type);
             like.setIsRead(0);
             like.setCreatedAt(new Date());
             like.setUpdatedAt(new Date());
             boolean result = save(like);
             log.info("添加点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
-                like.getLikeId(), dto.getUserId(), dto.getContentId(), result);
-            updateContentCounter(dto.getContentId(), dto.getType(), +1);
+                like.getLikeId(), userId, contentId, result);
+            updateContentCounter(Long.valueOf(contentId), type, +1);
             return result;
         }
     }
