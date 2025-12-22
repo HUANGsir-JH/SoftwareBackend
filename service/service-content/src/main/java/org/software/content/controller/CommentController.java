@@ -38,13 +38,18 @@ public class CommentController {
         return Response.success(childComments);
     }
     @GetMapping("/unread")
-    public Response getUnreadComments(@RequestParam Long commentId){
-        List<CommentVO> unreadComments = commentsService.getUnreadComments(commentId);
+    public Response getUnreadComments(){
+        List<CommentVO> unreadComments = commentsService.getUnreadComments();
         return Response.success(unreadComments);
     }
     @GetMapping("/unread/count")
-    public Response getUnreadCommentsCount(@RequestParam Long parentCommentId){
-        Long count=commentsService.getUnreadCommentCount(parentCommentId);
+    public Response getUnreadCommentsCount(){
+        Long count=commentsService.getUnreadCommentCount();
         return Response.success(count);
+    }
+    @DeleteMapping
+    public Response deleteComments(@RequestParam Long commentId) {
+        commentsService.deleteComments(commentId);
+        return Response.success();
     }
 }
