@@ -18,11 +18,11 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-//@TableName("content_like_favorite")
+@TableName("content_likes_favorites")
 public class ContentLikeFavorite {
     // 点赞记录id
     @TableId(type = IdType.AUTO)
-    private Long likeId;
+    private Long id;
     // 被点赞的内容id
     private Long contentId;
     // 点赞用户id
@@ -37,4 +37,8 @@ public class ContentLikeFavorite {
     private Date updatedAt;
     // 软删除字段
     private Date deletedAt;
+    
+    public Long getLikeId() {
+        return id;
+    }
 }

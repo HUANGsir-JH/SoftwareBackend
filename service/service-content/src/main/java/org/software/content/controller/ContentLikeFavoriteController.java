@@ -1,5 +1,6 @@
 package org.software.content.controller;
 
+import lombok.Data;
 import org.software.content.service.ContentLikeFavoriteService;
 import org.software.model.Response;
 import org.software.model.content.dto.ContentLikeFavoriteDTO;
@@ -7,6 +8,12 @@ import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+@Data
+class cf {
+    private Integer contentId;
+    private String type;
+}
 
 @RestController
 //@RequestMapping("/content-like-favorite")
@@ -20,8 +27,8 @@ public class ContentLikeFavoriteController {
 
     // 新增或取消点赞/收藏
     @PostMapping("/content-like-favorite")
-    public Response addOrCancelLike( @RequestParam Integer contentId, @RequestParam String type) {
-        boolean result = likeFavoriteService.addOrCancelLike(contentId,type);
+    public Response addOrCancelLike(@RequestBody cf request) {
+        boolean result = likeFavoriteService.addOrCancelLike(request.getContentId(),request.getType());
         return Response.success(result);
     }
 
