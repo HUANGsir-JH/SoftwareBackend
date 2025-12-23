@@ -54,9 +54,16 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
                     QueryWrapper<Friends> queryWrapper = new QueryWrapper<>();
                     queryWrapper.eq("user_id", userId).or().eq("friend_id", userId)
                             .eq("status", FriendsConstants.ACCEPTED);
-                    return list(queryWrapper).stream()
-                            .map(Friends::getFriendId)
-                            .collect(Collectors.toSet());
+                    HashSet<Object> set1 = new HashSet<>();
+                    list(queryWrapper).forEach(friends -> {
+                        // 添加双方ID
+                        // set会自动去重
+                        set1.add(friends.getUserId());
+                        set1.add(friends.getFriendId());
+                    });
+                    // 移除自己的ID
+                    set1.remove(userId);
+                    return set1.stream().map(o -> (Long) o).collect(Collectors.toSet());
                 }
         );
 
