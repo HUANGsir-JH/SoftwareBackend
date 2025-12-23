@@ -2,7 +2,9 @@ package org.software.content.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.db.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.CommentsMapper;
@@ -11,6 +13,8 @@ import org.software.feign.UserFeignClient;
 import org.software.model.Response;
 import org.software.model.content.dto.CommentDTO;
 import org.software.model.constants.HttpCodeEnum;
+import org.software.model.content.vo.CommentChildVO;
+import org.software.model.content.vo.CommentUnreadVO;
 import org.software.model.content.vo.CommentVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.interaction.comment.Comments;
@@ -152,50 +156,61 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
                 vo.setToUser(new UserV());
             }
             vo.setContent(comment.getContent());
-            vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());
-            vo.setChildren(new ArrayList<>());
+            vo.setUpdatedAt(comment.getUpdatedAt());
+            vo.setDeletedAt(comment.getDeletedAt());
+            long childCount = count(
+                    new LambdaQueryWrapper<Comments>()
+                            .eq(Comments::getParentCommentId, comment.getCommentId())
+                            .isNull(Comments::getDeletedAt)
+            );
+            vo.setChildCount(Math.toIntExact(childCount));
             return vo;
         }).collect(Collectors.toList());
     }
 
 
     @Override
-    public List<CommentVO> getChildComments(Long parentCommentId) throws BusinessException {
+    public org.software.model.page.PageResult getChildComments(Integer rootCommentId, Integer pageNum, Integer pageSize) throws BusinessException {
         // 校验父评论ID不为空
-        if (parentCommentId == null) {
+        if (rootCommentId == null) {
             log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
         // 校验父评论是否存在
         LambdaQueryWrapper<Comments> parentCheckWrapper = new LambdaQueryWrapper<>();
-        parentCheckWrapper.eq(Comments::getCommentId, parentCommentId)
+        parentCheckWrapper.eq(Comments::getCommentId, rootCommentId)
                 .isNull(Comments::getDeletedAt);
         if (count(parentCheckWrapper) == 0) {
-            log.warn("{} | parentCommentId: {}", HttpCodeEnum.PARENT_COMMENT_NOT_FOUND.getMsg(), parentCommentId);
+            log.warn("{} | parentCommentId: {}", HttpCodeEnum.PARENT_COMMENT_NOT_FOUND.getMsg(), rootCommentId);
             throw new BusinessException(HttpCodeEnum.PARENT_COMMENT_NOT_FOUND);
         }
 
         // 查询该父评论下的所有子评论（未删除）
         LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Comments::getParentCommentId, parentCommentId)
+        queryWrapper.eq(Comments::getParentCommentId, rootCommentId)
                 .isNull(Comments::getDeletedAt)
                 .orderByAsc(Comments::getCreatedAt); // 按创建时间升序排列
 
         List<Comments> childComments = list(queryWrapper);
         
-        log.info("查询子评论 | parentCommentId: {} | count: {}", parentCommentId, childComments.size());
+        log.info("查询子评论 | parentCommentId: {} | count: {}", rootCommentId, childComments.size());
 
-        // 转换为VO返回
-        return childComments.stream().map(comment -> {
-            CommentVO vo = new CommentVO();
+        //------------------------
+        Page<Comments> page = new Page<>(pageNum, pageSize);
+
+        Page<Comments> resultPage = page(page, queryWrapper);
+        List<CommentChildVO> records = resultPage.getRecords().stream().map(comment -> {
+            CommentChildVO vo = new CommentChildVO();
+
             vo.setCommentId(comment.getCommentId());
             vo.setContentId(comment.getContentId());
             vo.setUserId(comment.getUserId());
-            // 查询用户信息
+
             Response user = userFeignClient.getUser(comment.getUserId());
             Object data = user.getData();
+            System.out.println(data);
             UserStatusV userData;
             if (data instanceof UserStatusV) {
                 userData = (UserStatusV) data;
@@ -224,18 +239,29 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
             }else{
                 vo.setToUser(new UserV());
             }
+
+            vo.setParentCommentId(comment.getParentCommentId());
+            vo.setRootCommentId(comment.getRootCommentId());
             vo.setContent(comment.getContent());
-            vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());
-            vo.setChildren(new ArrayList<>()); // 子评论暂不嵌套
+            vo.setUpdatedAt(comment.getUpdatedAt());
+            vo.setDeletedAt(comment.getDeletedAt());
+
             return vo;
         }).collect(Collectors.toList());
+
+        org.software.model.page.PageResult pageresult = new org.software.model.page.PageResult();
+        pageresult.setRecords(records);
+        pageresult.setPageNum(pageNum);
+        pageresult.setPageSize(pageSize);
+        return pageresult;
+
     }
 
 
 
     @Override
-    public List<CommentVO> getUnreadComments() throws BusinessException {
+    public List<CommentUnreadVO> getUnreadComments() throws BusinessException {
         Long userId= StpUtil.getLoginIdAsLong();
 
 
@@ -252,7 +278,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
 
         // 转换为VO返回
         return unreadComments.stream().map(comment -> {
-            CommentVO vo = new CommentVO();
+            CommentUnreadVO vo = new CommentUnreadVO();
             vo.setCommentId(comment.getCommentId());
             vo.setContentId(comment.getContentId());
             vo.setUserId(comment.getUserId());
@@ -287,10 +313,12 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
             }else{
                 vo.setToUser(new UserV());
             }
+            //TODO:firstMedia和mediatype从何来
             vo.setContent(comment.getContent());
             vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());
-            vo.setChildren(new ArrayList<>());
+            vo.setUpdatedAt(comment.getUpdatedAt());
+            vo.setDeletedAt(comment.getDeletedAt());
             return vo;
         }).collect(Collectors.toList());
     }
