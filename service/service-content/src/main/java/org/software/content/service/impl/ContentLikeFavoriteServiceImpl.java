@@ -10,6 +10,7 @@ import org.software.content.mapper.ContentMapper;
 import org.software.content.service.ContentLikeFavoriteService;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.content.Content;
+import org.software.model.content.dto.ContentLikeDTO;
 import org.software.model.content.dto.ContentLikeFavoriteDTO;
 import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.software.model.exception.BusinessException;
@@ -46,10 +47,12 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
     
     @Override
     @Transactional
-    public boolean addOrCancelLike(Integer contentId, String type) throws BusinessException {
+    public boolean addOrCancelLike(ContentLikeDTO dto) throws BusinessException {
         Integer userId=StpUtil.getLoginIdAsInt();
+        Integer contentId= Math.toIntExact(dto.getContentId());
+        String type = dto.getType();
         // 校验内容ID不为空
-        if (contentId == null) {
+        if (dto.getContentId() == null) {
             log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
