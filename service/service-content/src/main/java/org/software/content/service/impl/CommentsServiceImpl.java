@@ -2,236 +2,222 @@ package org.software.content.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
-import org.software.content.mapper.CommentsMapper;
-import org.software.content.service.CommentsService;
-import org.software.model.content.dto.CommentDTO;
+import org.software.content.mapper.ContentLikeFavoriteMapper;
+import org.software.content.mapper.ContentMapper;
+import org.software.content.service.ContentLikeFavoriteService;
 import org.software.model.constants.HttpCodeEnum;
-import org.software.model.content.vo.CommentVO;
+import org.software.model.content.Content;
+import org.software.model.content.dto.ContentLikeFavoriteDTO;
+import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.software.model.exception.BusinessException;
-import org.software.model.interaction.comment.Comments;
+import org.software.model.interaction.ContentLikeFavorite;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> implements CommentsService {
+public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavoriteMapper, ContentLikeFavorite> implements ContentLikeFavoriteService {
 
-    @Override
-    public Long addComment(CommentDTO commentDTO) throws BusinessException {
-        // 校验内容ID不为空
-        if (commentDTO.getContentId() == null) {
-            log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), commentDTO.getUserId());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
+    @Autowired
+    private ContentMapper contentMapper;
+
+    private void updateContentCounter(Long contentId, String type, int delta) {
+
+        Content content = contentMapper.selectById(contentId);
+        if (content == null) return;
+
+        if ("like".equals(type)) {
+            content.setLikeCount(content.getLikeCount() + delta);
+        } else {
+            content.setFavoriteCount(content.getFavoriteCount() + delta);
         }
 
-        // 校验用户ID不为空
-        if (commentDTO.getUserId() == null) {
-            log.warn("{} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), commentDTO.getContentId());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
-
-        // 校验评论内容不为空
-        if (commentDTO.getContent() == null || commentDTO.getContent().trim().isEmpty()) {
-            log.warn("{} | userId: {} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), 
-                commentDTO.getUserId(), commentDTO.getContentId());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
-
-        // 正常业务逻辑
-        Comments comment = new Comments();
-        comment.setContentId(commentDTO.getContentId());
-        comment.setParentCommentId(commentDTO.getParentCommentId() == null ? 0 : commentDTO.getParentCommentId());
-        comment.setRootCommentId(commentDTO.getRootCommentId() == null ? 0 : commentDTO.getRootCommentId());
-        comment.setToUserId(commentDTO.getToUserId());
-        comment.setContent(commentDTO.getContent());
-        comment.setUserId(commentDTO.getUserId());
-        comment.setIsRead(0);
-        comment.setCreatedAt(new Date());
-        comment.setUpdatedAt(new Date());
-        save(comment);
-        
-        log.info("{} | commentId: {} | userId: {} | contentId: {} | parentCommentId: {}", 
-            HttpCodeEnum.COMMENT_ADDED_SUCCESS.getMsg(), comment.getCommentId(), 
-            commentDTO.getUserId(), commentDTO.getContentId(), comment.getParentCommentId());
-        return comment.getCommentId();
+        contentMapper.updateById(content);
     }
-
+    
     @Override
-    public List<CommentVO> getRootComments(Long contentId) throws BusinessException {
+    @Transactional
+    public boolean addOrCancelLike(Integer contentId, String type) throws BusinessException {
+        Integer userId=StpUtil.getLoginIdAsInt();
         // 校验内容ID不为空
         if (contentId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
+            log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
-        // 正常业务逻辑
-        LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Comments::getContentId, contentId)
-                .eq(Comments::getParentCommentId, 0)
-                .isNull(Comments::getDeletedAt);
-        List<Comments> rootComments = list(queryWrapper);
-        
-        log.info("查询根评论 | contentId: {} | count: {}", contentId, rootComments.size());
-        return rootComments.stream().map(comment -> {
-            CommentVO vo = new CommentVO();
-            vo.setCommentId(comment.getCommentId());
-            vo.setContentId(comment.getContentId());
-            vo.setUserId(comment.getUserId());
-            vo.setParentCommentId(comment.getParentCommentId());
-            vo.setRootCommentId(comment.getRootCommentId());
-            vo.setToUserId(comment.getToUserId());
-            vo.setContent(comment.getContent());
-            vo.setIsRead(comment.getIsRead());
-            vo.setCreatedAt(comment.getCreatedAt());
-            vo.setChildren(new ArrayList<>());
-            return vo;
-        }).collect(Collectors.toList());
-    }
 
 
-    @Override
-    public List<CommentVO> getChildComments(Long parentCommentId) throws BusinessException {
-        // 校验父评论ID不为空
-        if (parentCommentId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
+        // 校验操作类型不为空
+        if (type == null) {
+            log.warn("{} | userId: {} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(),
+                userId, contentId);
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
-        // 校验父评论是否存在
-        LambdaQueryWrapper<Comments> parentCheckWrapper = new LambdaQueryWrapper<>();
-        parentCheckWrapper.eq(Comments::getCommentId, parentCommentId)
-                .isNull(Comments::getDeletedAt);
-        if (count(parentCheckWrapper) == 0) {
-            log.warn("{} | parentCommentId: {}", HttpCodeEnum.PARENT_COMMENT_NOT_FOUND.getMsg(), parentCommentId);
-            throw new BusinessException(HttpCodeEnum.PARENT_COMMENT_NOT_FOUND);
-        }
-
-        // 查询该父评论下的所有子评论（未删除）
-        LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Comments::getParentCommentId, parentCommentId)
-                .isNull(Comments::getDeletedAt)
-                .orderByAsc(Comments::getCreatedAt); // 按创建时间升序排列
-
-        List<Comments> childComments = list(queryWrapper);
-        
-        log.info("查询子评论 | parentCommentId: {} | count: {}", parentCommentId, childComments.size());
-
-        // 转换为VO返回
-        return childComments.stream().map(comment -> {
-            CommentVO vo = new CommentVO();
-            vo.setCommentId(comment.getCommentId());
-            vo.setContentId(comment.getContentId());
-            vo.setUserId(comment.getUserId());
-            vo.setParentCommentId(comment.getParentCommentId());
-            vo.setRootCommentId(comment.getRootCommentId());
-            vo.setToUserId(comment.getToUserId());
-            vo.setContent(comment.getContent());
-            vo.setIsRead(comment.getIsRead());
-            vo.setCreatedAt(comment.getCreatedAt());
-            vo.setChildren(new ArrayList<>()); // 子评论暂不嵌套
-            return vo;
-        }).collect(Collectors.toList());
-    }
 
 
+        // 检查是否已存在该记录
+        LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ContentLikeFavorite::getContentId, contentId)
+                .eq(ContentLikeFavorite::getUserId, userId)
+                .eq(ContentLikeFavorite::getType, type)
+                .isNull(ContentLikeFavorite::getDeletedAt);
+        ContentLikeFavorite exist = getOne(queryWrapper);
 
-    @Override
-    public List<CommentVO> getUnreadComments() throws BusinessException {
-        Long userId= StpUtil.getLoginIdAsLong();
+        if (exist == null) {
+            // 情况一：从未存在 → 新增
+            ContentLikeFavorite like = new ContentLikeFavorite();
+            like.setContentId(Long.valueOf(contentId));
+            like.setUserId(Long.valueOf(userId));
+            like.setType(type);
+            like.setIsRead(0);
+            like.setCreatedAt(new Date());
+            like.setUpdatedAt(new Date());
+            like.setDeletedAt(null);
 
+            boolean result = save(like);
+            log.info("添加点赞 | likeId: {} | userId: {} | contentId: {} | result: {}",
+                    like.getLikeId(), userId, contentId, result);
 
-        // 查询未读评论（未删除 + 接收方是当前用户 + 未读）
-        LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Comments::getToUserId, userId)
-                .eq(Comments::getIsRead, 0)
-                .isNull(Comments::getDeletedAt)
-                .orderByDesc(Comments::getCreatedAt); // 按创建时间降序（最新的在前）
+            updateContentCounter(Long.valueOf(contentId), type, +1);
+            return result;
 
-        List<Comments> unreadComments = list(queryWrapper);
-        
-        log.info("查询未读评论 | userId: {} | count: {}", userId, unreadComments.size());
+        } else if (exist.getDeletedAt() == null) {
+            // 情况二：存在且未删除 → 取消点赞
+            exist.setDeletedAt(new Date());
+            exist.setUpdatedAt(new Date());
 
-        // 转换为VO返回
-        return unreadComments.stream().map(comment -> {
-            CommentVO vo = new CommentVO();
-            vo.setCommentId(comment.getCommentId());
-            vo.setContentId(comment.getContentId());
-            vo.setUserId(comment.getUserId());
-            vo.setParentCommentId(comment.getParentCommentId());
-            vo.setRootCommentId(comment.getRootCommentId());
-            vo.setToUserId(comment.getToUserId());
-            vo.setContent(comment.getContent());
-            vo.setIsRead(comment.getIsRead());
-            vo.setCreatedAt(comment.getCreatedAt());
-            vo.setChildren(new ArrayList<>());
-            return vo;
-        }).collect(Collectors.toList());
-    }
+            boolean result = updateById(exist);
+            log.info("取消点赞 | likeId: {} | userId: {} | contentId: {} | result: {}",
+                    exist.getLikeId(), userId, contentId, result);
 
+            updateContentCounter(Long.valueOf(contentId), type, -1);
+            return result;
 
-
-
-    @Override
-    public Long getUnreadCommentCount() throws BusinessException {
-        Long userId= StpUtil.getLoginIdAsLong();
-
-        // 统计未读评论数量（条件同getUnreadComments）
-        LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Comments::getToUserId, userId)
-                .eq(Comments::getIsRead, 0)
-                .isNull(Comments::getDeletedAt);
-
-        Long count = count(queryWrapper);
-        log.info("统计未读评论数量 | userId: {} | count: {}", userId, count);
-        return count;
-    }
-
-    @Override
-    public void deleteComments(Long commentId) throws BusinessException {
-        //参数校验
-        if (commentId == null) {
-            log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
-
-        // 查询评论是否存在
-        Comments comment = getById(commentId);
-        if (comment == null || comment.getDeletedAt() != null) {
-            log.warn("{} | commentId: {}", HttpCodeEnum.COMMENT_NOT_FOUND.getMsg(), commentId);
-            throw new BusinessException(HttpCodeEnum.COMMENT_NOT_FOUND);
-        }
-
-        Date now = new Date();
-
-        // 判断是否是根评论
-        if (comment.getParentCommentId() == 0) {
-            // 根评论
-            LambdaQueryWrapper<Comments> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(Comments::getRootCommentId, commentId)
-                    .or()
-                    .eq(Comments::getCommentId, commentId);
-
-            Comments updateEntity = new Comments();
-            updateEntity.setDeletedAt(now);
-            updateEntity.setUpdatedAt(now);
-
-            update(updateEntity, wrapper);
-
-            log.info("删除根评论及其子评论 | rootCommentId: {}", commentId);
         } else {
-            // 子评论
-            comment.setDeletedAt(now);
-            comment.setUpdatedAt(now);
-            updateById(comment);
+            // 情况三：存在但被软删除 → 恢复点赞
+            exist.setDeletedAt(null);
+            exist.setUpdatedAt(new Date());
 
-            log.info("删除子评论 | commentId: {}", commentId);
+            boolean result = updateById(exist);
+            log.info("恢复点赞 | likeId: {} | userId: {} | contentId: {} | result: {}",
+                    exist.getLikeId(), userId, contentId, result);
+
+            updateContentCounter(Long.valueOf(contentId), type, +1);
+            return result;
         }
     }
 
+    @Override
+    public List<ContentLikeFavoriteVO> getLikeFavoriteRecords(Integer pageNum,
+                                                              Integer pageSize,
+                                                              String type) throws BusinessException {
+        Integer userId= StpUtil.getLoginIdAsInt();
+
+
+        // 校验类型不为空
+        if (type == null || type.trim().isEmpty()) {
+            log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
+            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
+        }
+        Page<ContentLikeFavorite> page = new Page<>(pageNum, pageSize);
+
+        // 查询记录
+        LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ContentLikeFavorite::getUserId, userId)
+                .eq(ContentLikeFavorite::getType, type)
+                .isNull(ContentLikeFavorite::getDeletedAt);
+        Page<ContentLikeFavorite> resultPage = page(page, queryWrapper);
+
+        log.info("分页查询点赞收藏 | userId: {} | type: {} | page: {} | size: {} | total: {}",
+                userId, type, pageNum, pageSize, resultPage.getTotal());
+
+        return resultPage.getRecords()
+                .stream()
+                .map(like -> {
+                    ContentLikeFavoriteVO vo = new ContentLikeFavoriteVO();
+                    vo.setLikeId(like.getLikeId());
+                    vo.setContentId(like.getContentId());
+                    vo.setUserId(like.getUserId());
+                    vo.setIsRead(like.getIsRead());
+                    vo.setType(like.getType());
+                    vo.setCreatedAt(like.getCreatedAt());
+                    return vo;
+                })
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    @Transactional
+    public boolean readAll() throws BusinessException {
+
+        Integer userId= StpUtil.getLoginIdAsInt();
+
+
+        // 查询未读记录并标记为已读
+        LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ContentLikeFavorite::getUserId, userId)
+                .eq(ContentLikeFavorite::getIsRead, 0)
+                .isNull(ContentLikeFavorite::getDeletedAt);
+        List<ContentLikeFavorite> list = list(queryWrapper);
+
+        list.forEach(like -> {
+            like.setIsRead(1);
+            like.setUpdatedAt(new Date());
+        });
+        boolean result = updateBatchById(list);
+        log.info("标记全部已读 | userId: {} | count: {} | result: {}",
+            userId,  list.size(), result);
+        return result;
+    }
+
+    @Override
+    public List<ContentLikeFavoriteVO> getUnreadLikeFavorite(Integer pageNum,
+                                                             Integer pageSize,
+                                                             String type) throws BusinessException {
+        Integer userId= StpUtil.getLoginIdAsInt();
+
+
+        // 校验类型不为空
+        if (type == null || type.trim().isEmpty()) {
+            log.warn("{} | userId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), userId);
+            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
+        }
+        Page<ContentLikeFavorite> page = new Page<>(pageNum, pageSize);
+
+        // 查询未读记录
+        LambdaQueryWrapper<ContentLikeFavorite> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ContentLikeFavorite::getUserId, userId)
+                .eq(ContentLikeFavorite::getType, type)
+                .eq(ContentLikeFavorite::getIsRead, 0)
+                .isNull(ContentLikeFavorite::getDeletedAt);
+        Page<ContentLikeFavorite> resultPage = page(page, queryWrapper);
+
+        log.info("分页查询未读点赞收藏 | userId: {} | type: {} | total: {}",
+                userId, type, resultPage.getTotal());
+
+        return resultPage.getRecords()
+                .stream()
+                .map(like -> {
+                    ContentLikeFavoriteVO vo = new ContentLikeFavoriteVO();
+                    vo.setLikeId(like.getLikeId());
+                    vo.setContentId(like.getContentId());
+                    vo.setUserId(like.getUserId());
+                    vo.setIsRead(like.getIsRead());
+                    vo.setType(like.getType());
+                    vo.setCreatedAt(like.getCreatedAt());
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
 }
