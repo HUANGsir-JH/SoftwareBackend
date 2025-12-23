@@ -2,6 +2,7 @@ package org.software.content.controller;
 
 import org.software.content.service.ContentLikeFavoriteService;
 import org.software.model.Response;
+import org.software.model.content.dto.ContentLikeDTO;
 import org.software.model.content.dto.ContentLikeFavoriteDTO;
 import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +21,8 @@ public class ContentLikeFavoriteController {
 
     // 新增或取消点赞/收藏
     @PostMapping("/content-like-favorite")
-    public Response addOrCancelLike( @RequestParam Integer contentId, @RequestParam String type) {
-        boolean result = likeFavoriteService.addOrCancelLike(contentId,type);
+    public Response addOrCancelLike(@RequestBody ContentLikeDTO dto) {
+        boolean result = likeFavoriteService.addOrCancelLike(dto);
         return Response.success(result);
     }
 
