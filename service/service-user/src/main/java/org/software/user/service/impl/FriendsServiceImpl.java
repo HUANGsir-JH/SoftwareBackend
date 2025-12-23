@@ -1,5 +1,6 @@
 package org.software.user.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -10,11 +11,13 @@ import org.software.model.Response;
 import org.software.model.constants.FriendsConstants;
 import org.software.model.constants.UserConstants;
 import org.software.model.exception.BusinessException;
+import org.software.model.page.PageResult;
 import org.software.model.social.FindFriendRequest;
 import org.software.model.social.Friends;
 import org.software.model.social.UnreadCounts;
 import org.software.model.social.priv.PrivateConversations;
 import org.software.model.user.User;
+import org.software.model.user.UserStatusV;
 import org.software.user.mapper.FriendsMapper;
 import org.software.user.service.FriendsService;
 import org.software.user.service.UserService;
@@ -23,9 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -47,11 +48,11 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
     @Override
     public Set<User> listFriends(Long userId) {
         Set<Long> set = redisHelper.getSet(
-                UserConstants.USER_KEY + userId + FriendsConstants.FRIEND_KEY,
+                UserConstants.USER_KEY + userId + ":" + FriendsConstants.FRIEND_KEY,
                 Long.class,
                 () -> {
                     QueryWrapper<Friends> queryWrapper = new QueryWrapper<>();
-                    queryWrapper.eq("user_id", userId)
+                    queryWrapper.eq("user_id", userId).or().eq("friend_id", userId)
                             .eq("status", FriendsConstants.ACCEPTED);
                     return list(queryWrapper).stream()
                             .map(Friends::getFriendId)
@@ -61,7 +62,7 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
 
         // TODO: redis优化
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", set);
+        queryWrapper.in("user_id", set);
         return new HashSet<>(userService.list(queryWrapper));
     }
 
@@ -97,12 +98,9 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
     }
 
     @Override
-    public List<User> findFriend(FindFriendRequest request) {
+    public List<User> findFriend(String query) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", request.getId())
-                .eq("username", request.getUsername())
-                .eq("nickname", request.getNickname());
-
+        queryWrapper.like("nickname", query);
         return userService.list(queryWrapper);
     }
 
@@ -111,7 +109,7 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
     public void agreeAddFriendRequest(Long userId, Long friendshipId) {
         UpdateWrapper<Friends> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", FriendsConstants.ACCEPTED)
-                .eq("user_id", userId)
+                .eq("user_id", userId).or().eq("friend_id", userId)
                 .eq("friendship_id", friendshipId)
                 .ne("status", FriendsConstants.ACCEPTED);
         update(updateWrapper);
@@ -122,24 +120,41 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends> impl
         queryWrapper.eq("friendship_id", friendshipId);
         Friends friends = getOne(queryWrapper);
 
-        notificationFeignClient.addConv(friends.getFriendId());
+        notificationFeignClient.addConv(Objects.equals(friends.getFriendId(), userId) ? friends.getUserId() : friends.getFriendId());
     }
 
     @Override
     public void rejectFriendRequest(Long userId, Long friendshipId) {
         UpdateWrapper<Friends> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", FriendsConstants.REJECTED)
-                .eq("user_id", userId)
+                .eq("user_id", userId).or().eq("friend_id", friendshipId)
                 .eq("friendship_id", friendshipId);
         update(updateWrapper);
     }
 
+    @Transactional
     @Override
     public List<Friends> getNewFriendRequests(Long userId) {
         QueryWrapper<Friends> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId)
+        queryWrapper.eq("user_id", userId).or().eq("friend_id", userId)
                 .eq("status", FriendsConstants.PENDING);
         return list(queryWrapper);
     }
+
+    @Override
+    public String getFriendStatus(Long friendId) {
+        long userId = StpUtil.getLoginIdAsLong();
+
+        QueryWrapper<Friends> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId > friendId ? friendId : userId)
+                .eq("friend_id", userId > friendId ? userId : friendId);
+        Friends friends = getOne(queryWrapper);
+        if (friends == null) {
+            return null;
+        } else {
+            return friends.getStatus();
+        }
+    }
+
 }
 

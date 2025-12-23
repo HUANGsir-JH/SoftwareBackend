@@ -10,6 +10,13 @@ public class UserConstants{
     public static final String WOMAN = "woman";
     public static final String PRIVATE = "private";
 
+    // 用户好友相关
+    public static final String STATUS_MYSELF = "myself";
+    public static final String STATUS_PENDING = "pending";
+    public static final String STATUS_ACCEPTED = "accepted";
+    public static final String STATUS_REJECTED = "rejected";
+    public static final String STATUS_BLOCKED = "blocked";
+
     public static final Long ADMIN_USER_ID = 1L;
 
     public static final String USER_KEY = "user:";

@@ -20,7 +20,7 @@ public interface ContentService extends IService<Content> {
 
     PageResult pageContent(PageQuery pageQuery, Long userId, String status);
 
-    PageResult getAllContent(PageQuery pageQuery, Long tag);
+    PageResult getAllContent(PageQuery pageQuery, Long tag, String query);
 
     void updatePost(ContentDTO content);
 
@@ -31,5 +31,6 @@ public interface ContentService extends IService<Content> {
                                   String startTime, String endTime, String status);
     
     void remove(Long contentId);
+
 }
 

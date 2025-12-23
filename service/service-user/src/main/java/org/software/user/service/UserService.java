@@ -37,5 +37,7 @@ public interface UserService extends IService<User> {
     void forgetPasswordUpdate(PasswordView passwordView);
 
     String verifyCode(String email, String code);
+
+    PageResult searchFriend(Integer pageNum, Integer pageSize, String query);
 }
 

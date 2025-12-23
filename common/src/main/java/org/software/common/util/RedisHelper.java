@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +33,7 @@ public class RedisHelper {
 
     public <T> Set<T> getSet(String key, Class<T> clazz, Supplier<Set<T>> function) {
         Set<String> members = stringRedisTemplate.opsForSet().members(key);
-        if (members != null) {
+        if (members != null && !members.isEmpty()) {
             return members.stream()
                     .map(member -> JSONUtil.toBean(member, clazz))
                     .collect(Collectors.toSet());
@@ -40,10 +41,10 @@ public class RedisHelper {
 
         Set<T> set = function.get();
         members = set.stream()
-                .map(JSONUtil::toJsonStr)
+                .map(String::valueOf)
                 .collect(Collectors.toSet());
 
-        stringRedisTemplate.opsForSet().add(key, members.toArray(new String[0]));
+        // stringRedisTemplate.opsForSet().add(key, members.toArray(new String[0]));
         return set;
     }
 

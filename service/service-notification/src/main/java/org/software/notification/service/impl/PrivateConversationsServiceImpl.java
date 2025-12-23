@@ -10,6 +10,7 @@ import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.social.UnreadCounts;
 import org.software.model.social.priv.PrivateConversations;
+import org.software.model.user.UserStatusV;
 import org.software.model.user.UserV;
 import org.software.notification.mapper.PrivateConversationsMapper;
 import org.software.notification.mapper.UnreadCountsMapper;
@@ -41,8 +42,8 @@ public class PrivateConversationsServiceImpl extends ServiceImpl<PrivateConversa
         long userId = StpUtil.getLoginIdAsLong();
 
         PrivateConversations conv = PrivateConversations.builder()
-                .user1Id(userId)
-                .user2Id(friendId)
+                .user1Id(userId > friendId ? friendId : userId)
+                .user2Id(userId > friendId ? userId : friendId)
                 .build();
 
         save(conv);
@@ -75,8 +76,9 @@ public class PrivateConversationsServiceImpl extends ServiceImpl<PrivateConversa
         List<PrivateConversations> list = page.getRecords().stream()
                 .peek(conv -> {
                     Response response = userFeignClient.getUser(userId);
-                    UserV friend = BeanUtil.copyProperties(response.getData(), UserV.class);
-                    conv.setFriend(friend);
+                    UserStatusV friend = BeanUtil.copyProperties(response.getData(), UserStatusV.class);
+                    UserV friendV = BeanUtil.copyProperties(friend.getUser(), UserV.class);
+                    conv.setFriend(friendV);
 
                 }).toList();
 

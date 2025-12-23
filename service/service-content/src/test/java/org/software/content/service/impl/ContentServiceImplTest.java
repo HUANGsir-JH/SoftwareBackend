@@ -380,7 +380,7 @@ class ContentServiceImplTest {
                         .thenReturn(new UserV());
 
             // 执行查询
-            PageResult result = contentService.getAllContent(pageQuery, tagId);
+            PageResult result = contentService.getAllContent(pageQuery, tagId, null);
 
             // 验证结果
             assertNotNull(result);
@@ -401,7 +401,7 @@ class ContentServiceImplTest {
         when(contentTagMapper.selectList(any(QueryWrapper.class))).thenReturn(new ArrayList<>());
 
         // 执行查询
-        PageResult result = contentService.getAllContent(pageQuery, tagId);
+        PageResult result = contentService.getAllContent(pageQuery, tagId, null);
 
         // 验证返回空结果
         assertNotNull(result);
