@@ -1,6 +1,7 @@
 package org.software.content.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,8 @@ import org.software.model.constants.HttpCodeEnum;
 import org.software.model.content.vo.CommentVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.interaction.comment.Comments;
+import org.software.model.user.UserStatusV;
+import org.software.model.user.UserV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,8 +60,31 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
         Comments comment = new Comments();
         comment.setContentId(commentDTO.getContentId());
         comment.setParentCommentId(commentDTO.getParentCommentId() == null ? 0 : commentDTO.getParentCommentId());
-        comment.setRootCommentId(commentDTO.getRootCommentId() == null ? 0 : commentDTO.getRootCommentId());
-        comment.setToUserId(commentDTO.getToUserId());
+//        comment.setRootCommentId(commentDTO.getRootCommentId() == null ? 0 : commentDTO.getRootCommentId());
+        if(commentDTO.getParentCommentId() == null || commentDTO.getParentCommentId() == 0) {
+            // 根评论
+            comment.setRootCommentId(0L);
+        }else{
+            // 不是根评论，需要查询父评论的rootCommentId，以及parentCommentId对应的userId
+            LambdaQueryWrapper<Comments> parentQueryWrapper = new LambdaQueryWrapper<>();
+            parentQueryWrapper.eq(Comments::getCommentId, commentDTO.getParentCommentId())
+                    .isNull(Comments::getDeletedAt);
+            Comments parentComment = getOne(parentQueryWrapper);
+            if (parentComment == null) {
+                log.warn("{} | parentCommentId: {}", HttpCodeEnum.PARENT_COMMENT_NOT_FOUND.getMsg(), commentDTO.getParentCommentId());
+                throw new BusinessException(HttpCodeEnum.PARENT_COMMENT_NOT_FOUND);
+            }
+            if (parentComment.getRootCommentId() == 0) {
+                // 父评论是根评论
+                comment.setRootCommentId(parentComment.getCommentId());
+                comment.setToUserId(parentComment.getUserId());
+            } else {
+                // 父评论不是根评论
+                comment.setRootCommentId(parentComment.getRootCommentId());
+                comment.setToUserId(parentComment.getUserId());
+            }
+        }
+//        comment.setToUserId(commentDTO.getToUserId());
         comment.setContent(commentDTO.getContent());
         comment.setUserId(StpUtil.getLoginIdAsLong());
         comment.setIsRead(0);
@@ -93,9 +119,38 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
             vo.setCommentId(comment.getCommentId());
             vo.setContentId(comment.getContentId());
             vo.setUserId(comment.getUserId());
+            // 查询用户信息
+            Response user = userFeignClient.getUser(comment.getUserId());
+            Object data = user.getData();
+            System.out.println(data);
+            UserStatusV userData;
+            if (data instanceof UserStatusV) {
+                userData = (UserStatusV) data;
+            } else {
+                userData = BeanUtil.toBean(data, UserStatusV.class);
+            }
+            UserV userV = new UserV();
+            userV.setUserV(userData);
+            vo.setUser(userV);
             vo.setParentCommentId(comment.getParentCommentId());
             vo.setRootCommentId(comment.getRootCommentId());
             vo.setToUserId(comment.getToUserId());
+            // 查询被回复用户信息
+            if (comment.getToUserId() != null) {
+                Response toUser = userFeignClient.getUser(comment.getToUserId());
+                Object toData = toUser.getData();
+                UserStatusV toUserData;
+                if (toData instanceof UserStatusV) {
+                    toUserData = (UserStatusV) toData;
+                } else {
+                    toUserData = BeanUtil.toBean(toData, UserStatusV.class);
+                }
+                UserV toUserV = new UserV();
+                toUserV.setUserV(toUserData);
+                vo.setToUser(toUserV);
+            }else{
+                vo.setToUser(new UserV());
+            }
             vo.setContent(comment.getContent());
             vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());
@@ -138,9 +193,37 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
             vo.setCommentId(comment.getCommentId());
             vo.setContentId(comment.getContentId());
             vo.setUserId(comment.getUserId());
+            // 查询用户信息
+            Response user = userFeignClient.getUser(comment.getUserId());
+            Object data = user.getData();
+            UserStatusV userData;
+            if (data instanceof UserStatusV) {
+                userData = (UserStatusV) data;
+            } else {
+                userData = BeanUtil.toBean(data, UserStatusV.class);
+            }
+            UserV userV = new UserV();
+            userV.setUserV(userData);
+            vo.setUser(userV);
             vo.setParentCommentId(comment.getParentCommentId());
             vo.setRootCommentId(comment.getRootCommentId());
             vo.setToUserId(comment.getToUserId());
+            // 查询被回复用户信息
+            if (comment.getToUserId() != null) {
+                Response toUser = userFeignClient.getUser(comment.getToUserId());
+                Object toData = toUser.getData();
+                UserStatusV toUserData;
+                if (toData instanceof UserStatusV) {
+                    toUserData = (UserStatusV) toData;
+                } else {
+                    toUserData = BeanUtil.toBean(toData, UserStatusV.class);
+                }
+                UserV toUserV = new UserV();
+                toUserV.setUserV(toUserData);
+                vo.setToUser(toUserV);
+            }else{
+                vo.setToUser(new UserV());
+            }
             vo.setContent(comment.getContent());
             vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());
@@ -170,15 +253,40 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
         // 转换为VO返回
         return unreadComments.stream().map(comment -> {
             CommentVO vo = new CommentVO();
-            Response user = userFeignClient.getUser(comment.getUserId());
             vo.setCommentId(comment.getCommentId());
             vo.setContentId(comment.getContentId());
             vo.setUserId(comment.getUserId());
-            vo.setUser(null);
+            // 查询用户信息
+            Response user = userFeignClient.getUser(comment.getUserId());
+            Object data = user.getData();
+            UserStatusV userData;
+            if (data instanceof UserStatusV) {
+                userData = (UserStatusV) data;
+            } else {
+                userData = BeanUtil.toBean(data, UserStatusV.class);
+            }
+            UserV userV = new UserV();
+            userV.setUserV(userData);
+            vo.setUser(userV);
             vo.setParentCommentId(comment.getParentCommentId());
             vo.setRootCommentId(comment.getRootCommentId());
             vo.setToUserId(comment.getToUserId());
-            vo.setToUser(null);
+            // 查询被回复用户信息
+            if (comment.getToUserId() != null) {
+                Response toUser = userFeignClient.getUser(comment.getToUserId());
+                Object toData = toUser.getData();
+                UserStatusV toUserData;
+                if (toData instanceof UserStatusV) {
+                    toUserData = (UserStatusV) toData;
+                } else {
+                    toUserData = BeanUtil.toBean(toData, UserStatusV.class);
+                }
+                UserV toUserV = new UserV();
+                toUserV.setUserV(toUserData);
+                vo.setToUser(toUserV);
+            }else{
+                vo.setToUser(new UserV());
+            }
             vo.setContent(comment.getContent());
             vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());

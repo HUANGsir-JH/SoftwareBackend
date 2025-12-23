@@ -25,7 +25,8 @@ public class UserController {
     @GetMapping
     public Response getUser(Long userId) {
         User user = userService.getById(userId);
-        UserStatusV userStatusV = UserStatusV.builder().user(user).build();
+        UserStatusV userStatusV = new UserStatusV();
+        userStatusV.setUser(user);
         userStatusV.setStatus(friendsService.getFriendStatus(userId));
         return Response.success(userStatusV);
     }
