@@ -225,6 +225,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public PageResult searchFriend(Integer pageNum, Integer pageSize, String query) {
+        Page<User> page = new Page<>(pageNum, pageSize);
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.like("nickname", query)
+                .eq("is_active", UserConstants.USER_ACTIVE);
+
+        page = userMapper.selectPage(page, wrapper);
+        return PageResult.builder()
+                .total(page.getTotal())
+                .pageNum(pageNum)
+                .pageSize(pageSize)
+                .records(page.getRecords())
+                .build();
+    }
+
+    @Override
     public void forgetPassword(String email) {
         if (redisHelper.hasKey(email)) {
             // 如果缓存中已存在验证码，抛出异常

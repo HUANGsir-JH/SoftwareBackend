@@ -170,7 +170,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     }
 
     @Override
-    public PageResult getAllContent(PageQuery pageQuery, Long tag) {
+    public PageResult getAllContent(PageQuery pageQuery, Long tag, String query) {
         log.info("获取所有内容 | pageNum: {} | pageSize: {} | tag: {}", 
                 pageQuery.getPageNum(), pageQuery.getPageSize(), tag);
         Page<Content> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
@@ -201,6 +201,9 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         
         // 构建查询条件
         QueryWrapper<Content> wrapper = new QueryWrapper<>();
+        if (query != null && !query.isEmpty()) {
+            wrapper.like("title", query);
+        }
         wrapper.eq("status", ContentConstants.STATUS_PUBLISH)  // 只查询已发布的
                .eq("is_public", 1)  // 只查询公开的
                .isNull("deleted_at")  // 未删除的
@@ -435,4 +438,5 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         
         log.info("{} | contentId: {}", HttpCodeEnum.SUCCESS.getMsg(), contentId);
     }
+
 }

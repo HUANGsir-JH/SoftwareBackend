@@ -17,7 +17,7 @@
     <!-- 扩展字段 -->
     <result column="unread_count" property="unreadCount" />
     <result column="last_message" property="lastMessage" />
-    <association property="friend" javaType="org.software.model.user.User">
+    <association property="friend" javaType="org.software.model.user.UserV">
       <id column="friend_user_id" property="userId" />
     </association>
   </resultMap>

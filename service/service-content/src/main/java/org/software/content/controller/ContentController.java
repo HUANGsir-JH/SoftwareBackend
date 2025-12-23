@@ -117,7 +117,7 @@ public class ContentController {
      */
     @GetMapping("/all")
     public Response getAllContent(PageQuery pageQuery, @RequestParam(required = false) Long tag) {
-        PageResult result = contentService.getAllContent(pageQuery, tag);
+        PageResult result = contentService.getAllContent(pageQuery, tag, null);
         return Response.success(result);
     }
 

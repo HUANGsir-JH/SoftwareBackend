@@ -3,7 +3,9 @@ package org.software.user.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import org.software.model.Response;
 import org.software.model.exception.BusinessException;
+import org.software.model.page.PageResult;
 import org.software.model.social.FindFriendRequest;
+import org.software.model.social.FriendRequest;
 import org.software.model.social.Friends;
 import org.software.model.social.SendMessageRequest;
 import org.software.model.user.User;
@@ -43,9 +45,9 @@ public class FriendController {
      * 添加好友
      */
     @PostMapping
-    public Response addFriend(@RequestBody Long friendId) throws BusinessException {
+    public Response addFriend(@RequestBody FriendRequest friendId) throws BusinessException {
         Long userId = StpUtil.getLoginIdAsLong();
-        friendsService.addFriend(userId, friendId);
+        friendsService.addFriend(userId, friendId.getFriendId());
         return Response.success();
     }
 
@@ -63,8 +65,8 @@ public class FriendController {
      * 查找好友
      */
     @GetMapping("/find")
-    public Response findFriend(@RequestParam FindFriendRequest request) {
-        List<User> friend = friendsService.findFriend(request);
+    public Response findFriend(@RequestParam String query) {
+        List<User> friend = friendsService.findFriend(query);
         return Response.success(friend);
     }
 

@@ -41,7 +41,7 @@ spring:
                 -   id: service-content
                     uri: lb://service-content
                     predicates:
-                        - Path=/content/**, /tag/**, /content-like-favorite/**, /comment/**
+                        - Path=/content/**, /tag/**, /content-like-favorite/**, /comment/**, /search/**
 
                 -   id: service-search
                     uri: lb://service-search

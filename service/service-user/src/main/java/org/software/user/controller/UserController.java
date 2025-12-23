@@ -7,10 +7,8 @@ import org.software.model.constants.UserConstants;
 import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
-import org.software.model.user.PageUserD;
-import org.software.model.user.PasswordView;
-import org.software.model.user.User;
-import org.software.model.user.UserUpdateD;
+import org.software.model.user.*;
+import org.software.user.service.FriendsService;
 import org.software.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +19,15 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private FriendsService friendsService;
 
     @GetMapping
     public Response getUser(Long userId) {
-        return Response.success(userService.getById(userId));
+        User user = userService.getById(userId);
+        UserStatusV userStatusV = UserStatusV.builder().user(user).build();
+        userStatusV.setStatus(friendsService.getFriendStatus(userId));
+        return Response.success(userStatusV);
     }
 
     @PutMapping
@@ -51,6 +54,12 @@ public class UserController {
         userService.deleteUser(userId);
         StpUtil.logout();
         return Response.success();
+    }
+
+    @GetMapping("/search")
+    public Response searchFriend(Integer pageNum, Integer pageSize, String query) {
+        PageResult user = userService.searchFriend(pageNum, pageSize, query);
+        return Response.success(user);
     }
 
 // ========================= B端 ==============================
