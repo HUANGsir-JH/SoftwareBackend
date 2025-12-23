@@ -47,8 +47,8 @@ public class CommentController {
         Long count=commentsService.getUnreadCommentCount();
         return Response.success(count);
     }
-    @DeleteMapping
-    public Response deleteComments(@RequestParam Long commentId) {
+    @DeleteMapping("/{commentId}")
+    public Response deleteComments(@PathVariable Long commentId) {
         commentsService.deleteComments(commentId);
         return Response.success();
     }
