@@ -30,11 +30,12 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
-        // 校验用户ID不为空
-        if (commentDTO.getUserId() == null) {
-            log.warn("{} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), commentDTO.getContentId());
-            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
-        }
+//        // 校验用户ID不为空
+//        if (commentDTO.getUserId() == null) {
+//            log.warn("{} | contentId: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), commentDTO.getContentId());
+//            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
+//        }
+        
 
         // 校验评论内容不为空
         if (commentDTO.getContent() == null || commentDTO.getContent().trim().isEmpty()) {
@@ -50,7 +51,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
         comment.setRootCommentId(commentDTO.getRootCommentId() == null ? 0 : commentDTO.getRootCommentId());
         comment.setToUserId(commentDTO.getToUserId());
         comment.setContent(commentDTO.getContent());
-        comment.setUserId(commentDTO.getUserId());
+        comment.setUserId(StpUtil.getLoginIdAsLong());
         comment.setIsRead(0);
         comment.setCreatedAt(new Date());
         comment.setUpdatedAt(new Date());
