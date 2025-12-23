@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.CommentsMapper;
 import org.software.content.service.CommentsService;
+import org.software.feign.UserFeignClient;
+import org.software.model.Response;
 import org.software.model.content.dto.CommentDTO;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.content.vo.CommentVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.interaction.comment.Comments;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,7 +24,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> implements CommentsService {
-
+    
+    @Autowired
+    private UserFeignClient userFeignClient;
+    
+//    public CommentsServiceImpl(UserFeignClient userFeignClient) {
+//    }
+    
     @Override
     public Long addComment(CommentDTO commentDTO) throws BusinessException {
         // 校验内容ID不为空
@@ -161,12 +170,15 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
         // 转换为VO返回
         return unreadComments.stream().map(comment -> {
             CommentVO vo = new CommentVO();
+            Response user = userFeignClient.getUser(comment.getUserId());
             vo.setCommentId(comment.getCommentId());
             vo.setContentId(comment.getContentId());
             vo.setUserId(comment.getUserId());
+            vo.setUser(null);
             vo.setParentCommentId(comment.getParentCommentId());
             vo.setRootCommentId(comment.getRootCommentId());
             vo.setToUserId(comment.getToUserId());
+            vo.setToUser(null);
             vo.setContent(comment.getContent());
             vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());
