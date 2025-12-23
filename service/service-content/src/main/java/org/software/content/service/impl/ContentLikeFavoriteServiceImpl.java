@@ -73,16 +73,8 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
                 .isNull(ContentLikeFavorite::getDeletedAt);
         ContentLikeFavorite exist = getOne(queryWrapper);
 
-        if (exist != null) {
-            // 已存在：取消（标记删除）
-            exist.setDeletedAt(new Date());
-            boolean result = updateById(exist);
-            log.info("取消点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
-                exist.getLikeId(), userId, contentId, result);
-            updateContentCounter(Long.valueOf(contentId), type, +1);
-            return result;
-        } else {
-            // 不存在：新增
+        if (exist == null) {
+            // 情况一：从未存在 → 新增
             ContentLikeFavorite like = new ContentLikeFavorite();
             like.setContentId(Long.valueOf(contentId));
             like.setUserId(Long.valueOf(userId));
@@ -90,9 +82,36 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
             like.setIsRead(0);
             like.setCreatedAt(new Date());
             like.setUpdatedAt(new Date());
+            like.setDeletedAt(null);
+
             boolean result = save(like);
-            log.info("添加点赞 | likeId: {} | userId: {} | contentId: {} | result: {}", 
-                like.getLikeId(), userId, contentId, result);
+            log.info("添加点赞 | likeId: {} | userId: {} | contentId: {} | result: {}",
+                    like.getLikeId(), userId, contentId, result);
+
+            updateContentCounter(Long.valueOf(contentId), type, +1);
+            return result;
+
+        } else if (exist.getDeletedAt() == null) {
+            // 情况二：存在且未删除 → 取消点赞
+            exist.setDeletedAt(new Date());
+            exist.setUpdatedAt(new Date());
+
+            boolean result = updateById(exist);
+            log.info("取消点赞 | likeId: {} | userId: {} | contentId: {} | result: {}",
+                    exist.getLikeId(), userId, contentId, result);
+
+            updateContentCounter(Long.valueOf(contentId), type, -1);
+            return result;
+
+        } else {
+            // 情况三：存在但被软删除 → 恢复点赞
+            exist.setDeletedAt(null);
+            exist.setUpdatedAt(new Date());
+
+            boolean result = updateById(exist);
+            log.info("恢复点赞 | likeId: {} | userId: {} | contentId: {} | result: {}",
+                    exist.getLikeId(), userId, contentId, result);
+
             updateContentCounter(Long.valueOf(contentId), type, +1);
             return result;
         }
