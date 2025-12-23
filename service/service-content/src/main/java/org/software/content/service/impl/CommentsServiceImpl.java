@@ -2,6 +2,7 @@ package org.software.content.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.CommentsMapper;
@@ -96,47 +97,53 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
 
 
     @Override
-    public List<CommentVO> getChildComments(Long parentCommentId) throws BusinessException {
+    public List<CommentVO> getChildComments(Long rootCommentId, Integer pageNum, Integer pageSize) throws BusinessException {
         // 校验父评论ID不为空
-        if (parentCommentId == null) {
+        if (rootCommentId == null) {
             log.warn("{}", HttpCodeEnum.PARAM_ERROR.getMsg());
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
         // 校验父评论是否存在
         LambdaQueryWrapper<Comments> parentCheckWrapper = new LambdaQueryWrapper<>();
-        parentCheckWrapper.eq(Comments::getCommentId, parentCommentId)
+        parentCheckWrapper.eq(Comments::getCommentId, rootCommentId)
                 .isNull(Comments::getDeletedAt);
         if (count(parentCheckWrapper) == 0) {
-            log.warn("{} | parentCommentId: {}", HttpCodeEnum.PARENT_COMMENT_NOT_FOUND.getMsg(), parentCommentId);
+            log.warn("{} | parentCommentId: {}", HttpCodeEnum.PARENT_COMMENT_NOT_FOUND.getMsg(), rootCommentId);
             throw new BusinessException(HttpCodeEnum.PARENT_COMMENT_NOT_FOUND);
         }
 
         // 查询该父评论下的所有子评论（未删除）
+        Page<Comments> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Comments> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Comments::getParentCommentId, parentCommentId)
+        queryWrapper.eq(Comments::getParentCommentId, rootCommentId)
                 .isNull(Comments::getDeletedAt)
                 .orderByAsc(Comments::getCreatedAt); // 按创建时间升序排列
 
-        List<Comments> childComments = list(queryWrapper);
-        
-        log.info("查询子评论 | parentCommentId: {} | count: {}", parentCommentId, childComments.size());
+        Page<Comments> resultPage = page(page, queryWrapper);
 
-        // 转换为VO返回
-        return childComments.stream().map(comment -> {
-            CommentVO vo = new CommentVO();
-            vo.setCommentId(comment.getCommentId());
-            vo.setContentId(comment.getContentId());
-            vo.setUserId(comment.getUserId());
-            vo.setParentCommentId(comment.getParentCommentId());
-            vo.setRootCommentId(comment.getRootCommentId());
-            vo.setToUserId(comment.getToUserId());
-            vo.setContent(comment.getContent());
-            vo.setIsRead(comment.getIsRead());
-            vo.setCreatedAt(comment.getCreatedAt());
-            vo.setChildren(new ArrayList<>()); // 子评论暂不嵌套
-            return vo;
-        }).collect(Collectors.toList());
+
+        log.info("查询子评论 | rootCommentId: {} | pageNum: {} | pageSize: {} | total: {}",
+                rootCommentId, pageNum, pageSize, resultPage.getTotal());
+
+        // 转 VO
+        return resultPage.getRecords()
+                .stream()
+                .map(comment -> {
+                    CommentVO vo = new CommentVO();
+                    vo.setCommentId(comment.getCommentId());
+                    vo.setContentId(comment.getContentId());
+                    vo.setUserId(comment.getUserId());
+                    vo.setParentCommentId(comment.getParentCommentId());
+                    vo.setRootCommentId(comment.getRootCommentId());
+                    vo.setToUserId(comment.getToUserId());
+                    vo.setContent(comment.getContent());
+                    vo.setIsRead(comment.getIsRead());
+                    vo.setCreatedAt(comment.getCreatedAt());
+                    vo.setChildren(new ArrayList<>());
+                    return vo;
+                })
+                .collect(Collectors.toList());
     }
 
 
