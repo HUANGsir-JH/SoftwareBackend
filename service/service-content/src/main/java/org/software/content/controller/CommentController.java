@@ -33,10 +33,16 @@ public class CommentController {
         return Response.success(rootComments);
     }
     @GetMapping("/child")
-    public Response getChildComments(@RequestParam Long commentId) {
-        List<CommentVO> childComments = commentsService.getChildComments(commentId);
+    public Response getChildComments(
+            @RequestParam Long rootCommentId,
+            @RequestParam Integer pageNum,
+            @RequestParam Integer pageSize) {
+
+        List<CommentVO> childComments =
+                commentsService.getChildComments(rootCommentId, pageNum, pageSize);
         return Response.success(childComments);
     }
+
     @GetMapping("/unread")
     public Response getUnreadComments(){
         List<CommentVO> unreadComments = commentsService.getUnreadComments();
