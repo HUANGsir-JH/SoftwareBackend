@@ -1,6 +1,7 @@
 package org.software.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.software.model.content.dto.ContentLikeDTO;
 import org.software.model.content.dto.ContentLikeFavoriteDTO;
 import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.software.model.exception.BusinessException;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 public interface ContentLikeFavoriteService extends IService<ContentLikeFavorite> {
-    boolean addOrCancelLike(Integer contentId, String type) throws BusinessException;
+    boolean addOrCancelLike(ContentLikeDTO dto) throws BusinessException;
     List<ContentLikeFavoriteVO> getLikeFavoriteRecords(Integer pageNum,
                                                        Integer pageSize,
                                                        String type) throws BusinessException;
