@@ -4,7 +4,10 @@ package org.software.content.controller;
 import org.software.content.service.CommentsService;
 import org.software.model.content.dto.CommentDTO;
 import org.software.model.Response;
+import org.software.model.content.vo.CommentChildVO;
+import org.software.model.content.vo.CommentUnreadVO;
 import org.software.model.content.vo.CommentVO;
+import org.software.model.page.PageResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,13 +36,13 @@ public class CommentController {
         return Response.success(rootComments);
     }
     @GetMapping("/child")
-    public Response getChildComments(@RequestParam Long commentId) {
-        List<CommentVO> childComments = commentsService.getChildComments(commentId);
+    public Response getChildComments(@RequestParam Integer rootCommentId,@RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageResult childComments = commentsService.getChildComments(rootCommentId,pageNum,pageSize);
         return Response.success(childComments);
     }
     @GetMapping("/unread")
     public Response getUnreadComments(){
-        List<CommentVO> unreadComments = commentsService.getUnreadComments();
+        List<CommentUnreadVO> unreadComments = commentsService.getUnreadComments();
         return Response.success(unreadComments);
     }
     @GetMapping("/unread/count")
