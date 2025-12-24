@@ -77,7 +77,8 @@ public class PrivateConversationsServiceImpl extends ServiceImpl<PrivateConversa
                 .peek(conv -> {
                     Response response = userFeignClient.getUser(userId);
                     UserStatusV friend = BeanUtil.copyProperties(response.getData(), UserStatusV.class);
-                    UserV friendV = BeanUtil.copyProperties(friend.getUser(), UserV.class);
+                    UserV friendV = new UserV();
+                    friendV.setUserV(friend);
                     conv.setFriend(friendV);
 
                 }).toList();
