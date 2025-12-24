@@ -9,8 +9,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.CommentsMapper;
 import org.software.content.service.CommentsService;
+import org.software.content.service.ContentService;
 import org.software.feign.UserFeignClient;
 import org.software.model.Response;
+import org.software.model.content.Content;
 import org.software.model.content.dto.CommentDTO;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.content.vo.CommentChildVO;
@@ -31,7 +33,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> implements CommentsService {
-    
+
+
     @Autowired
     private UserFeignClient userFeignClient;
     
@@ -254,6 +257,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
         pageresult.setRecords(records);
         pageresult.setPageNum(pageNum);
         pageresult.setPageSize(pageSize);
+        pageresult.setTotal(resultPage.getTotal());
         return pageresult;
 
     }
@@ -313,7 +317,13 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
             }else{
                 vo.setToUser(new UserV());
             }
-            //TODO:firstMedia和mediatype从何来
+            
+            ContentService contentService = new ContentServiceImpl();
+            Content content = contentService.getById(comment.getContentId());
+            if (content != null) {
+                vo.setFirstMedia(content.getCoverUrl());
+                vo.setMediaType(content.getContentType());
+            }
             vo.setContent(comment.getContent());
             vo.setIsRead(comment.getIsRead());
             vo.setCreatedAt(comment.getCreatedAt());
