@@ -9,6 +9,7 @@ import org.software.content.mapper.TagMapper;
 import org.software.content.service.TagService;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.content.dto.TagDTO;
+import org.software.model.content.dto.UpdateTagDTO;
 import org.software.model.content.vo.TagVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.content.Tag;
@@ -24,7 +25,7 @@ import java.util.List;
 public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagService {
 
     @Override
-    public boolean addTag(TagDTO tagDTO) throws BusinessException {
+    public Integer addTag(TagDTO tagDTO) throws BusinessException {
         // 标签名称为空校验
         if (tagDTO.getTagName() == null || tagDTO.getTagName().trim().isEmpty()) {
             log.warn("{} | tagName: null", HttpCodeEnum.PARAM_ERROR.getMsg());
@@ -49,21 +50,21 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         if (result) {
             log.info("标签添加成功 | tagName: {}, tagId: {}", tagDTO.getTagName(), tag.getTagId());
         }
-        return result;
+        return Math.toIntExact(tag.getTagId());
     }
 
     @Override
-    public boolean updateTag(Integer tagId, TagDTO tagDTO) throws BusinessException {
+    public Integer updateTag(UpdateTagDTO tagDTO) throws BusinessException {
         // 标签ID为空校验
-        if (tagId == null) {
+        if (tagDTO.getId() == null) {
             log.warn("{} | tagId: null", HttpCodeEnum.PARAM_ERROR.getMsg());
             throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
         }
 
         // 标签不存在校验
-        Tag existTag = getById(tagId);
+        Tag existTag = getById(tagDTO.getId());
         if (existTag == null || existTag.getDeletedAt() != null) {
-            log.warn("{} | tagId: {}", HttpCodeEnum.RESOURCE_NOT_FOUND.getMsg(), tagId);
+            log.warn("{} | tagId: {}", HttpCodeEnum.RESOURCE_NOT_FOUND.getMsg(), tagDTO.getId());
             throw new BusinessException(HttpCodeEnum.RESOURCE_NOT_FOUND);
         }
 
@@ -76,10 +77,10 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         // 标签名称重复校验(排除当前标签)
         LambdaQueryWrapper<Tag> checkWrapper = new LambdaQueryWrapper<>();
         checkWrapper.eq(Tag::getTagName, tagDTO.getTagName())
-                .ne(Tag::getTagId, tagId)
+                .ne(Tag::getTagId, tagDTO.getId())
                 .isNull(Tag::getDeletedAt);
         if (count(checkWrapper) > 0) {
-            log.warn("{} | tagName: {}, tagId: {}", HttpCodeEnum.TAG_NAME_DUPLICATE.getMsg(), tagDTO.getTagName(), tagId);
+            log.warn("{} | tagName: {}, tagId: {}", HttpCodeEnum.TAG_NAME_DUPLICATE.getMsg(), tagDTO.getTagName(), tagDTO.getId());
             throw new BusinessException(HttpCodeEnum.TAG_NAME_DUPLICATE);
         }
 
@@ -88,14 +89,14 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         existTag.setUpdatedAt(new Date());
         boolean result = updateById(existTag);
         if (result) {
-            log.info("标签更新成功 | tagId: {}, tagName: {}", tagId, tagDTO.getTagName());
+            log.info("标签更新成功 | tagId: {}, tagName: {}", tagDTO.getId(), tagDTO.getTagName());
         }
-        return result;
+        return existTag.getIsActive();
     }
 
     @Override
-    public PageResult getTagList(PageQuery query, String tagName, Integer isActive) {
-        Page<Tag> page = new Page<>(query.getPageNum(), query.getPageSize());
+    public PageResult getTagList(Integer pageNum,Integer pageSize,String tagName,Integer isActive) {
+        Page<Tag> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
         if (tagName != null && !tagName.trim().isEmpty()) {
             queryWrapper.eq(Tag::getTagName, tagName);
@@ -110,15 +111,15 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
                         .map(tag -> BeanUtil.toBean(tag, TagVO.class)).toList();
         log.info("查询标签列表成功 | count: {}", page.getRecords().size());
         return PageResult.builder()
-                .pageNum(query.getPageNum())
-                .pageSize(query.getPageSize())
+                .pageNum(pageNum)
+                .pageSize(pageSize)
                 .records(tagVOS)
                 .total(page.getTotal())
                 .build();
     }
 
     @Override
-    public boolean deleteTag(Integer tagId) throws BusinessException {
+    public void deleteTag(Integer tagId) throws BusinessException {
         // 标签ID为空校验
         if (tagId == null) {
             log.warn("{} | tagId: null", HttpCodeEnum.PARAM_ERROR.getMsg());
