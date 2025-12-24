@@ -1,6 +1,7 @@
 package org.software.model.user;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class User {
     //用户名（登录用）
     private String username;
     //加密后的密码
+    @JsonIgnore
     private String password;
     //注册邮箱
     private String email;
