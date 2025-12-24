@@ -4,6 +4,7 @@ package org.software.content.controller;
 import org.software.content.service.TagService;
 import org.software.model.Response;
 import org.software.model.content.dto.TagDTO;
+import org.software.model.content.dto.UpdateTagDTO;
 import org.software.model.content.vo.TagVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
@@ -23,24 +24,24 @@ public class TagController {
 
     @PostMapping
     public Response addTag(@RequestBody TagDTO tagDTO) throws BusinessException {
-        boolean result = tagService.addTag(tagDTO);
+        Integer result = tagService.addTag(tagDTO);
         return Response.success(result);
     }
 
-    @PutMapping("/{tagId}")
-    public Response updateTag(@PathVariable Integer tagId, @RequestBody TagDTO tagDTO) throws BusinessException {
-        boolean result = tagService.updateTag(tagId, tagDTO);
+    @PutMapping
+    public Response updateTag(@RequestBody UpdateTagDTO tagDTO) throws BusinessException {
+        Integer result = tagService.updateTag(tagDTO);
         return Response.success(result);
     }
 
     @GetMapping
-    public Response getTagList(PageQuery query, String tagName, Integer isActive) {
-        return Response.success(tagService.getTagList(query, tagName, isActive));
+    public Response getTagList(@RequestParam Integer pageNum,@RequestParam Integer pageSize,@RequestParam String tagName, @RequestParam Integer isActive) {
+        return Response.success(tagService.getTagList(pageNum,pageSize,tagName,isActive));
     }
 
     @DeleteMapping("/{tagId}")
     public Response deleteTag(@PathVariable Integer tagId) throws BusinessException {
-        boolean result = tagService.deleteTag(tagId);
-        return Response.success(result);
+        tagService.deleteTag(tagId);
+        return Response.success(null);
     }
 }
