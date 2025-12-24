@@ -138,6 +138,6 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         if (result) {
             log.info("标签删除成功 | tagId: {}", tagId);
         }
-        return result;
+       
     }
 }
