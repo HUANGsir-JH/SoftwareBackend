@@ -12,4 +12,5 @@ public class TagVO {
     private Integer isActive;
     private Date createdAt;
     private Date updatedAt;
+    private Date deletedAt;
 }
