@@ -4,6 +4,7 @@ import org.software.model.Response;
 import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.social.SendMessageRequest;
+import org.software.model.user.WsMsg;
 import org.software.notification.service.PrivateConversationsService;
 import org.software.notification.service.PrivateMessagesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,14 @@ public class NotificationController {
         return Response.success(privateConversationsService.getPrivateChatList(query));
     }
 
-    /**
-     * 发送私聊消息
-     */
-    @PostMapping("/private")
-    public Response sendPrivateMessage(@RequestBody SendMessageRequest request) throws BusinessException {
-        privateMessagesService.sendPrivateMessage(request);
-        return Response.success();
-    }
+//    /**
+//     * 发送私聊消息
+//     */
+//    @PostMapping("/private")
+//    public Response sendPrivateMessage(@RequestBody WsMsg request) throws BusinessException {
+//        privateMessagesService.sendPrivateMessage(request);
+//        return Response.success();
+//    }
 
     /**
      * 获取指定私聊消息

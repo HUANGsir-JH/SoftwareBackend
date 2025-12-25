@@ -21,9 +21,9 @@ public class MQHelper {
     private RocketMQTemplate rocketMQTemplate;
 
     public <T> SendResult syncSend(String tag, T value){
+        
         return rocketMQTemplate.syncSend(topic + ":" + tag, JSONUtil.toJsonStr(value));
     }
-
-
-
+    
 }
+

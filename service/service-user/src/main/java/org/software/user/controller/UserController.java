@@ -1,6 +1,8 @@
 package org.software.user.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.bean.BeanUtil;
+import org.software.feign.ContentFeignClient;
 import org.software.model.Response;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.constants.UserConstants;
@@ -13,6 +15,10 @@ import org.software.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -21,6 +27,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private FriendsService friendsService;
+    @Autowired
+    private ContentFeignClient contentFeignClient;
 
     @GetMapping
     public Response getUser(Long userId) {
@@ -62,7 +70,23 @@ public class UserController {
         PageResult user = userService.searchFriend(pageNum, pageSize, query);
         return Response.success(user);
     }
-
+    
+    @GetMapping("/data")
+    public Response getUserData() {
+        Set<User> users = friendsService.listFriends(StpUtil.getLoginIdAsLong());
+        Response userContentData = contentFeignClient.getUserContentData(StpUtil.getLoginIdAsLong());
+        
+        UserDataV userDataV;
+        if (userContentData.getData() != null) {
+            userDataV = BeanUtil.copyProperties(userContentData.getData(), UserDataV.class);
+        } else {
+            userDataV = new UserDataV();
+            userDataV.setTotalLike(0);
+            userDataV.setTotalFavorite(0);
+        }
+        userDataV.setTotalFriend(users.size());
+        return Response.success(userDataV);
+    }
 // ========================= B端 ==============================
 
     @GetMapping("/b")

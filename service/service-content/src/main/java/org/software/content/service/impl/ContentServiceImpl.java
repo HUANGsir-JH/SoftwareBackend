@@ -10,16 +10,14 @@ import org.software.content.mapper.ContentMapper;
 import org.software.content.mapper.ContentMediaMapper;
 import org.software.content.mapper.ContentTagMapper;
 import org.software.content.mapper.TagMapper;
+import org.software.content.service.ContentLikeFavoriteService;
 import org.software.content.service.ContentService;
 import org.software.feign.UserFeignClient;
 import org.software.model.Response;
 import org.software.model.constants.ContentConstants;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.constants.TagConstants;
-import org.software.model.content.Content;
-import org.software.model.content.ContentTag;
-import org.software.model.content.FirstMedia;
-import org.software.model.content.Tag;
+import org.software.model.content.*;
 import org.software.model.content.dto.ContentDTO;
 import org.software.model.content.vo.ContentDetailVO;
 import org.software.model.content.vo.ContentVO;
@@ -28,15 +26,13 @@ import org.software.model.media.ContentMedia;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.user.User;
+import org.software.model.user.UserDataV;
 import org.software.model.user.UserV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import cn.hutool.json.JSONUtil;
@@ -61,6 +57,8 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
     private ContentMediaMapper contentMediaMapper;
     @Autowired
     private UserFeignClient userFeignClient;
+    @Autowired
+    private ContentLikeFavoriteService contentLikeFavoriteService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -438,5 +436,37 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         
         log.info("{} | contentId: {}", HttpCodeEnum.SUCCESS.getMsg(), contentId);
     }
-
+    
+    @Override
+    public UserDataV getUserContentData(Long userId) {
+        log.info("获取用户内容数据统计 | userId: {}", userId);
+        return contentMapper.getUserContentData(userId);
+    }
+    
+    @Override
+    public PageResult getUserContents(PageQuery pageQuery, String type) {
+        PageResult pageResult = PageResult.builder().
+                pageNum(pageQuery.getPageNum()).
+                pageSize(pageQuery.getPageSize()).
+                build();
+        if (type != null && !type.isEmpty()) {
+            List<UserContentLikeFavorites> list =
+                    contentLikeFavoriteService.getUserLikedContents(pageQuery, type);
+            if (list == null) {
+                list = new ArrayList<>();
+            }
+            pageResult.setTotal(!list.isEmpty() ? list.size() : 0L);
+            list.subList(
+                    (pageQuery.getPageNum() - 1) * pageQuery.getPageSize(),
+                    Math.min(pageQuery.getPageNum() * pageQuery.getPageSize(), list.size())
+            );
+            pageResult.setRecords(list);
+            return pageResult;
+            
+        } else {
+            log.warn("{} | type: {}", HttpCodeEnum.PARAM_ERROR.getMsg(), type);
+            throw new BusinessException(HttpCodeEnum.PARAM_ERROR);
+        }
+    }
+    
 }

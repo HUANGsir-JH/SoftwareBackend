@@ -1,9 +1,12 @@
 package org.software.notification.controller;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.software.common.util.MQHelper;
 import org.software.model.constants.WebSocketConstants;
+import org.software.model.user.WsMsg;
 import org.software.notification.service.ConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -59,7 +62,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             log.debug("收到用户 {} 的Pong响应", userId);
         } else {
             connectionManager.updateActivity(session.getId());
-            SendResult sendResult = mqHelper.syncSend(tag, message.getPayload());
+            WsMsg msg = JSONUtil.toBean(message.getPayload(), WsMsg.class);
+            msg.setUserId(userId);
+            SendResult sendResult = mqHelper.syncSend(tag, msg);
             log.info("收到用户 {} 的消息: {}", userId, sendResult);
         }
     }

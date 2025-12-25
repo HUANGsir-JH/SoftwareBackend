@@ -1,19 +1,27 @@
 package org.software.content.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.Query;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.software.content.mapper.ContentLikeFavoriteMapper;
 import org.software.content.mapper.ContentMapper;
 import org.software.content.service.ContentLikeFavoriteService;
+import org.software.feign.UserFeignClient;
 import org.software.model.constants.HttpCodeEnum;
 import org.software.model.content.Content;
+import org.software.model.content.FirstMedia;
+import org.software.model.content.UserContentLikeFavorites;
 import org.software.model.content.dto.ContentLikeFavoriteDTO;
 import org.software.model.content.vo.ContentLikeFavoriteVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.interaction.ContentLikeFavorite;
+import org.software.model.page.PageQuery;
+import org.software.model.user.UserV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +37,8 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
 
     @Autowired
     private ContentMapper contentMapper;
+    @Autowired
+    private UserFeignClient userFeignClient;
 
     private void updateContentCounter(Long contentId, String type, int delta) {
 
@@ -219,5 +229,52 @@ public class ContentLikeFavoriteServiceImpl extends ServiceImpl<ContentLikeFavor
                     return vo;
                 })
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<UserContentLikeFavorites> getUserLikedContents(PageQuery pageQuery, String type) {
+        Page<ContentLikeFavorite> page = new Page<>(pageQuery.getPageNum(), pageQuery.getPageSize());
+        
+        QueryWrapper<ContentLikeFavorite> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("type", type)
+                .eq("user_id", StpUtil.getLoginIdAsLong())
+                .isNull("deleted_at");
+        page = page(page, queryWrapper);
+        
+        List<Long> contentIds = page.getRecords().stream()
+                .map(ContentLikeFavorite::getContentId)
+                .toList();
+        if (contentIds.isEmpty()) {
+            return null;
+        }else{
+            LambdaQueryWrapper<Content> contentQuery = new LambdaQueryWrapper<>();
+            contentQuery.in(Content::getContentId, contentIds);
+            List<Content> contents = contentMapper.selectList(contentQuery);
+            
+            return contents.stream()
+                    .map(like -> {
+                        UserContentLikeFavorites uclf = new UserContentLikeFavorites();
+                        uclf.setUserId(like.getUserId());
+                        uclf.setContentId(like.getContentId());
+                        
+                        UserV data = BeanUtil.copyProperties(
+                                userFeignClient.getUser(like.getUserId()).getData(),
+                                UserV.class);
+                        uclf.setUserV(data);
+                        uclf.setContentType(like.getContentType());
+                        
+                        FirstMedia firstMedia = new FirstMedia();
+                        firstMedia.setFileUrl(like.getCoverUrl());
+                        firstMedia.setType(like.getContentType());
+                        uclf.setFirstMedia(firstMedia);
+                        uclf.setTitle(like.getTitle());
+                        uclf.setCreatedAt(like.getCreatedAt());
+                        uclf.setUpdatedAt(like.getUpdatedAt());
+                        uclf.setDeletedAt(like.getDeletedAt());
+                        
+                        return uclf;
+                    })
+                    .collect(Collectors.toList());
+        }
     }
 }

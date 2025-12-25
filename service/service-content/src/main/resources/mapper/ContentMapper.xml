@@ -65,10 +65,27 @@
         LEFT JOIN tag t ON ct.tag_id = t.tag_id AND t.deleted_at IS NULL
         LEFT JOIN content_media m ON c.content_id = m.content_id AND m.deleted_at IS NULL
         WHERE c.deleted_at IS NULL
-        ORDER BY c.created_at DESC
+        ORDER BY c.created_at DESC;
+    </select>
+
+
+
+    <select id="getUserContentData" resultMap="UserDataV">
+        SELECT
+            COALESCE(SUM(like_count), 0) AS totalLike,
+            COALESCE(SUM(favorite_count), 0) AS totalFavorite,
+            0 AS totalFriend
+        FROM content
+        WHERE user_id = #{userId} AND deleted_at IS NULL;
     </select>
 
     <!-- ResultMap定义 -->
+    <resultMap id="UserDataV" type="org.software.model.user.UserDataV">
+        <result column="totalLike" property="totalLike" />
+        <result column="totalFavorite" property="totalFavorite" />
+        <result column="totalFriend" property="totalFriend" />
+    </resultMap>
+
     <resultMap id="BaseResultMap" type="org.software.model.content.Content">
         <id column="content_id" property="contentId" />
         <result column="user_id" property="userId" />

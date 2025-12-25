@@ -188,8 +188,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .nickname(registerRequest.getNickname())
                 .username("深小友" + UUID.randomUUID())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .avatar("https://pub-6490a24ed39b48af81967d526b813684.r2.dev/rainbobucket/image/1/1765384461074_2968e606.jpg")
+                .sex(UserConstants.PRIVATE)
                 .isActive(UserConstants.USER_ACTIVE)
                 .build();
+        
         // 4. 保存用户信息
         userMapper.insert(user);
         log.info("{} | userId: {} | email: {}", HttpCodeEnum.SUCCESS.getMsg(), user.getUserId(), user.getEmail());

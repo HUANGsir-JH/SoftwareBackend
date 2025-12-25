@@ -14,6 +14,13 @@ sa-token:
     is-share: false
     jwt-secret-key: 202315SZU202315SZU202315SZU202315SZU202315SZU2023
 
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.netty: DEBUG # 关键：可以看到底层的网络连接
+
 spring:
     profiles:
         active: dev  # 或 test、prod
@@ -57,3 +64,8 @@ spring:
                     uri: lb://service-media
                     predicates:
                         - Path=/upload/**
+
+                -   id: websocket_route
+                    uri: lb:ws://service-notification
+                    predicates:
+                        - Path=/ws/**

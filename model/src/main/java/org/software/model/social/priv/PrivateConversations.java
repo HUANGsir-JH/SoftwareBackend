@@ -14,10 +14,10 @@ import java.util.Date;
  * 私聊会话(PrivateConversations)表实体类
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @TableName("private_conversations")
 @Builder
+@AllArgsConstructor
 public class PrivateConversations {
     // 私聊会话id
     @TableId(type = IdType.AUTO)

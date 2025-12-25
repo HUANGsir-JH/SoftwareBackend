@@ -75,7 +75,9 @@ public class PrivateConversationsServiceImpl extends ServiceImpl<PrivateConversa
         page = privateConversationsMapper.pageC(page, userId);
         List<PrivateConversations> list = page.getRecords().stream()
                 .peek(conv -> {
-                    Response response = userFeignClient.getUser(userId);
+                    Response response = userFeignClient.getUser(
+                            userId.equals(conv.getUser1Id()) ? conv.getUser2Id() : conv.getUser1Id()
+                    );
                     UserStatusV friend = BeanUtil.copyProperties(response.getData(), UserStatusV.class);
                     UserV friendV = new UserV();
                     friendV.setUserV(friend);
@@ -93,7 +95,7 @@ public class PrivateConversationsServiceImpl extends ServiceImpl<PrivateConversa
 
     @Override
     public void updateConv(PrivateConversations conv) {
-        save(conv);
+        updateById(conv);
     }
 
 }

@@ -27,7 +27,7 @@ public class SaTokenConfiguration {
             // 放行无需登录的路径（注意：这些路径不会进入 setAuth 逻辑）
             .addExclude(
                     "/user/login/**", "/user/register/**", "/user/forget/**",
-                    "/content/all", "/content/view"
+                    "/content/all", "/content/view", "/ws/**"
             )
             // 开启登录认证
             .setAuth(auth -> {

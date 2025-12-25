@@ -1,6 +1,8 @@
 package org.software.notification.service.impl;
 
+import cn.dev33.satoken.context.mock.SaTokenContextMockUtil;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,6 +15,7 @@ import org.software.model.social.SendMessageRequest;
 import org.software.model.social.UnreadCounts;
 import org.software.model.social.priv.PrivateConversations;
 import org.software.model.social.priv.PrivateMessages;
+import org.software.model.user.WsMsg;
 import org.software.notification.mapper.PrivateMessagesMapper;
 import org.software.notification.mapper.UnreadCountsMapper;
 import org.software.notification.service.PrivateConversationsService;
@@ -21,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 私聊消息表(PrivateMessages)表服务实现类
@@ -46,13 +51,13 @@ public class PrivateMessagesServiceImpl extends ServiceImpl<PrivateMessagesMappe
         Page<PrivateMessages> page = new Page<>(query.getPageNum(), query.getPageSize());
         QueryWrapper<PrivateMessages> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("conversation_id", conversationId)
-                .orderByDesc("created_time");
+                .orderByDesc("created_at");
         page = page(page, queryWrapper);
 
         // 更新已读
         List<PrivateMessages> list = page.getRecords().stream()
                 .peek(item -> item.setIsRead(MessageConstants.IS_READ)).toList();
-        saveBatch(list);
+        // saveBatch(list);
 
         return PageResult.builder()
                 .total(page.getTotal())
@@ -64,8 +69,7 @@ public class PrivateMessagesServiceImpl extends ServiceImpl<PrivateMessagesMappe
 
     @Transactional
     @Override
-    public void sendPrivateMessage(SendMessageRequest request) throws BusinessException {
-        long userId = StpUtil.getLoginIdAsLong();
+    public void sendPrivateMessage(WsMsg request, Long userId) throws BusinessException {
 
         String content = switch (request.getType()){
             case MessageConstants.TEXT -> request.getContent();
@@ -87,13 +91,18 @@ public class PrivateMessagesServiceImpl extends ServiceImpl<PrivateMessagesMappe
         save(privateMessages);
 
         PrivateConversations privateConversations = PrivateConversations.builder()
-                        .lastMessageId(privateMessages.getMessageId()).build();
-        privateConversationsService.updateConv(privateConversations);
+                .conversationId(request.getConversationId())
+                .user1Id(userId > request.getFriendId() ? request.getFriendId() : userId)
+                .user2Id(userId > request.getFriendId() ? userId : request.getFriendId())
+                .lastMessage(request.getContent())
+                .lastContactTime(DateTime.now())
+                .lastMessageId(privateMessages.getMessageId()).build();
+        privateConversationsService.updateById(privateConversations);
 
         // TODO: redis优化？
         // 未读计数
         UpdateWrapper<UnreadCounts> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("unread_counts", "unread_counts + 1")
+        updateWrapper.setSql("unread_count = unread_count + 1")
                 .eq("conversation_id", request.getConversationId())
                 .eq("user_id", request.getFriendId());
         unreadCountsMapper.update(null, updateWrapper);

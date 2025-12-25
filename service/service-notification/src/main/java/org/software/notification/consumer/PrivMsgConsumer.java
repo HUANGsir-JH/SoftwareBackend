@@ -1,6 +1,7 @@
 package org.software.notification.consumer;
 
 import cn.hutool.json.JSONUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -8,6 +9,7 @@ import org.software.common.util.RedisHelper;
 import org.software.model.constants.MessageConstants;
 import org.software.model.exception.BusinessException;
 import org.software.model.social.SendMessageRequest;
+import org.software.model.user.WsMsg;
 import org.software.notification.service.ConnectionManager;
 import org.software.notification.service.PrivateMessagesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +49,8 @@ public class PrivMsgConsumer implements RocketMQListener<String> {
         
         try {
             // 1. 解析消息
-            SendMessageRequest request = JSONUtil.toBean(message, SendMessageRequest.class);
+//            SendMessageRequest request = JSONUtil.toBean(message, SendMessageRequest.class);
+            WsMsg request = JSONUtil.toBean(message, WsMsg.class);
             
             // 2. 消息去重检查
             if (request.getRandomKey() == null || request.getRandomKey().isEmpty()) {
@@ -65,7 +68,7 @@ public class PrivMsgConsumer implements RocketMQListener<String> {
             }
             
             // 3. 调用service保存消息到数据库
-            privateMessagesService.sendPrivateMessage(request);
+            privateMessagesService.sendPrivateMessage(request, request.getUserId());
             log.info("消息已保存: conversationId={}, senderId={}", request.getConversationId(), request.getFriendId());
             
             // 4. 判断接收者是否在线
@@ -107,3 +110,15 @@ public class PrivMsgConsumer implements RocketMQListener<String> {
         }
     }
 }
+
+//@Data
+//class WsMsg {
+//    private String randomKey; // 消息唯一标识，用于防止重复消费（客户端生成）
+//    private Long conversationId;
+//    private Long friendId;
+//    private String type;
+//    private String content;
+//    private String fileUrl;
+//    private Long repliedToMessageId;
+//    private Long userId;
+//}

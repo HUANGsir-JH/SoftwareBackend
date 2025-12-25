@@ -6,6 +6,7 @@ import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
 import org.software.model.social.SendMessageRequest;
 import org.software.model.social.priv.PrivateMessages;
+import org.software.model.user.WsMsg;
 
 
 /**
@@ -18,6 +19,6 @@ public interface PrivateMessagesService extends IService<PrivateMessages> {
 
     PageResult getPrivateMessageDetail(PageQuery query, Long conversationId) throws Exception;
 
-    void sendPrivateMessage(SendMessageRequest request) throws BusinessException;
+    void sendPrivateMessage(WsMsg request, Long userId) throws BusinessException;
 }
 

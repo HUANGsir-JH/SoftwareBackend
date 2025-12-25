@@ -12,6 +12,7 @@ import org.software.model.content.vo.UserContentDataVO;
 import org.software.model.exception.BusinessException;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
+import org.software.model.user.UserDataV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -135,6 +136,19 @@ public class ContentController {
         }
         ContentDetailVO contentDetail = contentService.viewContent(contentId);
         return Response.success(contentDetail);
+    }
+    
+    @GetMapping("/userdata")
+    public Response getUserContentData(@RequestParam Long userId) {
+        UserDataV userContentData = contentService.getUserContentData(userId);
+        
+        return Response.success(userContentData);
+    }
+    
+    @GetMapping("/user")
+    public Response getUserContents(PageQuery pageQuery, String type) {
+        PageResult result = contentService.getUserContents(pageQuery, type);
+        return Response.success(result);
     }
 
     // ========================= B端管理接口 ==============================

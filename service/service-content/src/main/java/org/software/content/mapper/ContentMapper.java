@@ -8,6 +8,7 @@ import org.checkerframework.checker.units.qual.C;
 import org.software.model.content.Content;
 import org.software.model.content.vo.ContentDetailVO;
 import org.software.model.media.ContentMedia;
+import org.software.model.user.UserDataV;
 
 import java.util.List;
 
@@ -41,5 +42,7 @@ public interface ContentMapper extends BaseMapper<Content> {
     
     List<ContentDetailVO> selectContentDetailPage(Page<ContentDetailVO> page, String title, String contentType,
                                                   String startTime, String endTime, String status);
+    
+    UserDataV getUserContentData(Long userId);
 }
 

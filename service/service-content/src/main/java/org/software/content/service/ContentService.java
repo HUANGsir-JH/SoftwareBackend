@@ -6,6 +6,7 @@ import org.software.model.content.dto.ContentDTO;
 import org.software.model.content.vo.ContentDetailVO;
 import org.software.model.page.PageQuery;
 import org.software.model.page.PageResult;
+import org.software.model.user.UserDataV;
 
 
 /**
@@ -31,6 +32,9 @@ public interface ContentService extends IService<Content> {
                                   String startTime, String endTime, String status);
     
     void remove(Long contentId);
-
+    
+    UserDataV getUserContentData(Long userId);
+    
+    PageResult getUserContents(PageQuery pageQuery, String type);
 }
 
