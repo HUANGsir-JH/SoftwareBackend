@@ -2,6 +2,7 @@ package org.software.model.content;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("content")
+@Builder
 public class Content {
     // 内容id
     @TableId(type = IdType.AUTO)

@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class TagDTO {
+    private Integer tagId;
     private String tagName;
     private Integer isActive;
 }

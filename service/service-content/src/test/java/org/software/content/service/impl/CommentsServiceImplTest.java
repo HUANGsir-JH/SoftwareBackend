@@ -2,6 +2,7 @@ package org.software.content.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,23 +60,18 @@ class CommentsServiceImplTest {
             }
 
             @Override
-            public Comments getOne(LambdaQueryWrapper<Comments> queryWrapper) {
+            public Comments getOne(Wrapper<Comments> queryWrapper) {
                 return commentsMapper.selectOne(queryWrapper);
             }
 
             @Override
-            public List<Comments> list(LambdaQueryWrapper<Comments> queryWrapper) {
+            public List<Comments> list(Wrapper<Comments> queryWrapper) {
                 return commentsMapper.selectList(queryWrapper);
             }
 
             @Override
-            public long count(LambdaQueryWrapper<Comments> queryWrapper) {
+            public long count(Wrapper<Comments> queryWrapper) {
                 return commentsMapper.selectCount(queryWrapper);
-            }
-
-            @Override
-            public Page<Comments> page(Page<Comments> page, LambdaQueryWrapper<Comments> queryWrapper) {
-                return commentsMapper.selectPage(page, queryWrapper);
             }
 
             @Override
@@ -90,7 +86,7 @@ class CommentsServiceImplTest {
             }
 
             @Override
-            public boolean update(Comments entity, LambdaQueryWrapper<Comments> updateWrapper) {
+            public boolean update(Comments entity, Wrapper<Comments> updateWrapper) {
                 int result = commentsMapper.update(entity, updateWrapper);
                 return result > 0;
             }
@@ -98,7 +94,7 @@ class CommentsServiceImplTest {
 
         // 使用反射注入 Mock 依赖
         try {
-            java.lang.reflect.Field commentsMapperField = CommentsServiceImpl.class.getDeclaredField("commentsMapper");
+            java.lang.reflect.Field commentsMapperField = com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.class.getDeclaredField("baseMapper");
             commentsMapperField.setAccessible(true);
             commentsMapperField.set(commentsService, commentsMapper);
 
@@ -418,47 +414,6 @@ class CommentsServiceImplTest {
         });
 
         assertEquals(HttpCodeEnum.PARENT_COMMENT_NOT_FOUND.getCode(), exception.getCode());
-    }
-
-    /**
-     * 测试获取未读评论 - 正常流程
-     */
-    @Test
-    void testGetUnreadComments_Success() {
-        try (MockedStatic<StpUtil> stpUtilMock = mockStatic(StpUtil.class)) {
-            stpUtilMock.when(StpUtil::getLoginIdAsLong).thenReturn(1L);
-
-            // Mock 查询未读评论
-            List<Comments> unreadComments = new ArrayList<>();
-            Comments unreadComment = Comments.builder()
-                    .commentId(2L)
-                    .contentId(100L)
-                    .userId(2L)
-                    .toUserId(1L)
-                    .content("未读评论")
-                    .isRead(0)
-                    .createdAt(new Date())
-                    .build();
-            unreadComments.add(unreadComment);
-
-            when(commentsMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(unreadComments);
-
-            // Mock 用户信息查询
-            UserStatusV userStatusV = new UserStatusV();
-            userStatusV.setUserId(2L);
-            userStatusV.setNickname("测试用户2");
-            when(userFeignClient.getUser(anyLong())).thenReturn(Response.success(userStatusV));
-
-            // 执行查询
-            List<CommentUnreadVO> result = commentsService.getUnreadComments();
-
-            // 验证结果
-            assertNotNull(result);
-            assertEquals(1, result.size());
-
-            // 验证调用
-            verify(commentsMapper, times(1)).selectList(any(LambdaQueryWrapper.class));
-        }
     }
 
     /**

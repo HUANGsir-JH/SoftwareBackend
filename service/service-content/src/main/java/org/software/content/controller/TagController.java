@@ -27,8 +27,9 @@ public class TagController {
         return Response.success(result);
     }
 
-    @PutMapping("/{tagId}")
-    public Response updateTag(@PathVariable Integer tagId, @RequestBody TagDTO tagDTO) throws BusinessException {
+    @PutMapping
+    public Response updateTag(@RequestBody TagDTO tagDTO) throws BusinessException {
+        Integer tagId = tagDTO.getTagId();
         boolean result = tagService.updateTag(tagId, tagDTO);
         return Response.success(result);
     }

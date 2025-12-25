@@ -1,5 +1,6 @@
 package org.software.content.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +44,7 @@ class TagServiceImplTest {
         // 手动创建 TagServiceImpl 并注入依赖
         tagService = new TagServiceImpl() {
             @Override
-            public long count(LambdaQueryWrapper<Tag> queryWrapper) {
+            public long count(Wrapper<Tag> queryWrapper) {
                 return tagMapper.selectCount(queryWrapper);
             }
 
@@ -63,16 +64,11 @@ class TagServiceImplTest {
                 int result = tagMapper.updateById(entity);
                 return result > 0;
             }
-
-            @Override
-            public Page<Tag> page(Page<Tag> page, LambdaQueryWrapper<Tag> queryWrapper) {
-                return tagMapper.selectPage(page, queryWrapper);
-            }
         };
 
         // 使用反射注入 Mock 依赖
         try {
-            java.lang.reflect.Field tagMapperField = TagServiceImpl.class.getDeclaredField("tagMapper");
+            java.lang.reflect.Field tagMapperField = com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.class.getDeclaredField("baseMapper");
             tagMapperField.setAccessible(true);
             tagMapperField.set(tagService, tagMapper);
         } catch (Exception e) {

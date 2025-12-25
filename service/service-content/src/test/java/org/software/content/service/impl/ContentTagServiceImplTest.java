@@ -1,5 +1,6 @@
 package org.software.content.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class ContentTagServiceImplTest {
         // 手动创建 ContentTagServiceImpl 并注入依赖
         contentTagService = new ContentTagServiceImpl() {
             @Override
-            public List<ContentTag> list(LambdaQueryWrapper<ContentTag> queryWrapper) {
+            public List<ContentTag> list(Wrapper<ContentTag> queryWrapper) {
                 return contentTagMapper.selectList(queryWrapper);
             }
 
@@ -64,7 +65,7 @@ class ContentTagServiceImplTest {
 
         // 使用反射注入 Mock 依赖
         try {
-            java.lang.reflect.Field contentTagMapperField = ContentTagServiceImpl.class.getDeclaredField("contentTagMapper");
+            java.lang.reflect.Field contentTagMapperField = com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.class.getDeclaredField("baseMapper");
             contentTagMapperField.setAccessible(true);
             contentTagMapperField.set(contentTagService, contentTagMapper);
 
@@ -77,7 +78,8 @@ class ContentTagServiceImplTest {
 
         // 准备测试数据
         testContentTag = ContentTag.builder()
-                .contentTagId(1L)
+                .contentId(1L)
+                .tagId(1L)
                 .contentId(100L)
                 .tagId(1L)
                 .createdAt(new Date())
@@ -124,12 +126,14 @@ class ContentTagServiceImplTest {
         // Mock 查询原有标签（有旧标签）
         List<ContentTag> oldTags = new ArrayList<>();
         ContentTag oldTag1 = ContentTag.builder()
-                .contentTagId(1L)
+                .contentId(1L)
+                .tagId(1L)
                 .contentId(100L)
                 .tagId(4L)
                 .build();
         ContentTag oldTag2 = ContentTag.builder()
-                .contentTagId(2L)
+                .contentId(2L)
+                .tagId(2L)
                 .contentId(100L)
                 .tagId(5L)
                 .build();

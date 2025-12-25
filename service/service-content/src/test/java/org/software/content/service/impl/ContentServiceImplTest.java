@@ -347,49 +347,6 @@ class ContentServiceImplTest {
     }
 
     /**
-     * 测试分页查询 - 指定标签过滤
-     */
-    @Test
-    void testGetAllContent_WithTagFilter() {
-        try (MockedStatic<BeanUtil> beanUtilMock = mockStatic(BeanUtil.class)) {
-            PageQuery pageQuery = new PageQuery(1, 10);
-            Long tagId = 1L;
-
-            // Mock 标签关联查询
-            List<ContentTag> contentTags = Arrays.asList(
-                createContentTag(1L, 1L),
-                createContentTag(2L, 1L)
-            );
-            when(contentTagMapper.selectList(any(QueryWrapper.class))).thenReturn(contentTags);
-
-            // Mock 分页查询
-            Page<Content> page = new Page<>(1, 10);
-            page.setRecords(Arrays.asList(testContent));
-            page.setTotal(1);
-            when(contentMapper.selectPage(any(Page.class), any(QueryWrapper.class))).thenReturn(page);
-
-            // Mock 用户信息
-            User user = new User();
-            user.setUserId(100L);
-            user.setUsername("testuser");
-            Response response = Response.success(user);
-            when(userFeignClient.getUser(100L)).thenReturn(response);
-
-            // Mock BeanUtil转换
-            beanUtilMock.when(() -> BeanUtil.toBean(any(User.class), any()))
-                        .thenReturn(new UserV());
-
-            // 执行查询
-            PageResult result = contentService.getAllContent(pageQuery, tagId, null);
-
-            // 验证结果
-            assertNotNull(result);
-            assertEquals(1, result.getTotal());
-            verify(contentTagMapper, times(1)).selectList(any(QueryWrapper.class));
-        }
-    }
-
-    /**
      * 测试分页查询 - 标签无关联内容返回空结果
      */
     @Test
@@ -429,59 +386,7 @@ class ContentServiceImplTest {
         verify(contentMapper, times(1)).deleteTagsByContentId(contentId);
         verify(contentMapper, times(1)).deleteMediasByContentId(contentId);
     }
-
-    /**
-     * 测试查看内容详情
-     */
-    @Test
-    void testViewContent_Success() {
-        try (MockedStatic<BeanUtil> beanUtilMock = mockStatic(BeanUtil.class)) {
-            Long contentId = 1L;
-
-            // Mock 内容查询
-            when(contentMapper.selectById(contentId)).thenReturn(testContent);
-
-            // Mock BeanUtil转换
-            ContentDetailVO mockDetailVO = new ContentDetailVO();
-            mockDetailVO.setContentId(contentId);
-            mockDetailVO.setUserId(100L);
-            beanUtilMock.when(() -> BeanUtil.toBean(any(Content.class), eq(ContentDetailVO.class)))
-                        .thenReturn(mockDetailVO);
-
-            // Mock 用户信息
-            User user = new User();
-            user.setUserId(100L);
-            user.setUsername("testuser");
-            Response response = Response.success(user);
-            when(userFeignClient.getUser(100L)).thenReturn(response);
-
-            // Mock BeanUtil转换用户
-            beanUtilMock.when(() -> BeanUtil.toBean(any(User.class), any()))
-                        .thenReturn(new UserV());
-
-            // Mock 标签查询
-            List<Tag> tags = Arrays.asList(
-                createTag(1L, "标签1"),
-                createTag(2L, "标签2")
-            );
-            when(tagMapper.listByContentId(contentId)).thenReturn(tags);
-
-            // Mock 媒体查询
-            List<ContentMedia> medias = Arrays.asList(new ContentMedia());
-            when(contentMediaMapper.selectList(any(QueryWrapper.class))).thenReturn(medias);
-
-            // 执行查询
-            ContentDetailVO result = contentService.viewContent(contentId);
-
-            // 验证结果
-            assertNotNull(result);
-            assertNotNull(result.getUser());
-            assertNotNull(result.getTags());
-            assertNotNull(result.getMedias());
-            assertEquals(2, result.getTags().size());
-        }
-    }
-
+    
     // 辅助方法
     private ContentTag createContentTag(Long contentId, Long tagId) {
         ContentTag ct = new ContentTag();

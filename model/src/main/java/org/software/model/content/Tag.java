@@ -2,6 +2,7 @@ package org.software.model.content;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("tag")
+@Builder
 public class Tag {
     // 标签id
     @TableId(type = IdType.AUTO)
